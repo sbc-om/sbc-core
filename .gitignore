@@ -1,0 +1,16 @@
+node_modules
+.env
+dist
+coverage
+*.log
+.idea
+.vscode
+.DS_Store
+*.bak
+*.tmp
+.next
+out
+build
+*.swp
+*.swo
+*.swn
