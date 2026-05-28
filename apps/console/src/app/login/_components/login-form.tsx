@@ -1,13 +1,43 @@
 "use client";
 
-import { useActionState } from "react";
-import { loginAction } from "@/actions/auth";
+import { useState } from "react";
 
 export function LoginForm() {
-  const [state, action, pending] = useActionState(loginAction, undefined);
+  const [error,   setError]   = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form     = e.currentTarget;
+    const email    = (form.elements.namedItem("email")    as HTMLInputElement).value.trim();
+    const password = (form.elements.namedItem("password") as HTMLInputElement).value;
+
+    setError(null);
+    setPending(true);
+
+    try {
+      const res  = await fetch("/api/auth/login", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ email, password }),
+      });
+      const data = await res.json() as { ok?: boolean; error?: string };
+
+      if (!res.ok || data.error) {
+        setError(data.error ?? "Login failed");
+        setPending(false);
+        return;
+      }
+
+      window.location.replace("/");
+    } catch {
+      setError("Network error. Please try again.");
+      setPending(false);
+    }
+  }
 
   return (
-    <form action={action} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label className="mb-1.5 block text-sm font-medium">Email</label>
         <input
@@ -20,7 +50,6 @@ export function LoginForm() {
           className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-ring focus:border-transparent"
         />
       </div>
-
       <div>
         <label className="mb-1.5 block text-sm font-medium">Password</label>
         <input
@@ -32,13 +61,9 @@ export function LoginForm() {
           className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-ring focus:border-transparent"
         />
       </div>
-
-      {state?.error && (
-        <div className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          {state.error}
-        </div>
+      {error && (
+        <div className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">{error}</div>
       )}
-
       <button
         type="submit"
         disabled={pending}

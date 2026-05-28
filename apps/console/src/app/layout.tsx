@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title:       "SBC Core",
-  description: "Modular Business Operating System",
+  title:       "SBC ERP",
+  description: "Modern ERP for daily business operations",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

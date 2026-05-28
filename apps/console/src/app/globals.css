@@ -18,7 +18,7 @@
   --color-destructive: oklch(0.577 0.245 27.325);
   --color-destructive-foreground: oklch(0.985 0 0);
 
-  /* Sidebar tokens — dark sidebar */
+  /* Sidebar tokens for dark sidebar */
   --color-sidebar:                oklch(0.178 0.015 265);
   --color-sidebar-foreground:     oklch(0.92 0.005 265);
   --color-sidebar-border:         oklch(0.25 0.015 265);

@@ -14,7 +14,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <NavigationSidebar menus={menus} appName="SBC Core" />
+      <NavigationSidebar menus={menus} appName="SBC ERP" />
       <div className="flex flex-1 flex-col overflow-hidden">
         <UserHeader user={{ name: user.name, email: user.email, isSuperAdmin: user.isSuperAdmin }} />
         <main className="flex-1 overflow-y-auto p-6">{children}</main>

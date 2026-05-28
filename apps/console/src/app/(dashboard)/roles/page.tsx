@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { HiArrowRight } from "react-icons/hi2";
 import { listRoles } from "@sbc/module-iam/services";
 import { CreateRoleDialog } from "./_components/create-role-dialog";
 import { DeleteRoleButton } from "./_components/delete-role-button";
@@ -52,8 +53,9 @@ export default async function RolesPage() {
                     {role.createdAt.toLocaleDateString()}
                   </td>
                   <td className="px-4 py-3 flex items-center gap-3">
-                    <Link href={`/roles/${role.id}`} className="text-xs text-primary hover:underline">
-                      Edit →
+                    <Link href={`/roles/${role.id}`} className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
+                      Edit
+                      <HiArrowRight className="h-4 w-4" />
                     </Link>
                     <DeleteRoleButton id={role.id} isSystem={role.isSystem} />
                   </td>

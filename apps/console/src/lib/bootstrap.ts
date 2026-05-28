@@ -40,7 +40,7 @@ async function ensureSuperAdmin(): Promise<void> {
     isSuperAdmin: true,
   }).onConflictDoNothing();
 
-  console.warn(`[sbc] super admin created — email: ${ADMIN_EMAIL}  password: admin123`);
+  console.warn(`[sbc] super admin created | email: ${ADMIN_EMAIL}  password: admin123`);
 }
 
 async function ensureInstalled(manifest: ModuleManifest): Promise<void> {

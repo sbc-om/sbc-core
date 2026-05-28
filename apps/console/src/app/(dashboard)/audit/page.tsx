@@ -1,5 +1,6 @@
 import { db, auditLogs, users } from "@sbc/database";
 import { desc, eq } from "drizzle-orm";
+import { PiScrollDuotone } from "react-icons/pi";
 
 export default async function AuditPage() {
   const logs = await db
@@ -16,12 +17,15 @@ export default async function AuditPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">Audit Logs</h2>
-        <p className="text-muted-foreground">Full trail of all system actions.</p>
+      <div className="rounded-[1.5rem] border border-border bg-background p-6">
+        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-muted text-slate-700">
+          <PiScrollDuotone className="h-5 w-5" />
+        </div>
+        <h2 className="text-2xl font-bold tracking-tight text-slate-950">Audit Logs</h2>
+        <p className="mt-2 text-sm text-slate-600">Full trail of all system actions.</p>
       </div>
 
-      <div className="rounded-lg border border-border overflow-hidden">
+      <div className="overflow-hidden rounded-[1.25rem] border border-border bg-background">
         {logs.length === 0 ? (
           <div className="p-6">
             <p className="text-sm text-muted-foreground">No audit entries yet.</p>
@@ -41,7 +45,7 @@ export default async function AuditPage() {
                 <tr key={log.id} className="border-b border-border last:border-0 hover:bg-muted/20">
                   <td className="px-4 py-3 font-mono text-xs">{log.action}</td>
                   <td className="px-4 py-3 text-muted-foreground">{log.resourceType}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground truncate max-w-[160px]">{log.resourceId ?? "—"}</td>
+                  <td className="max-w-[160px] truncate px-4 py-3 font-mono text-xs text-muted-foreground">{log.resourceId ?? "Not available"}</td>
                   <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                     {log.createdAt.toLocaleString()}
                   </td>

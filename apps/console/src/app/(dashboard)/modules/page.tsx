@@ -1,5 +1,6 @@
 import { db, modules } from "@sbc/database";
 import { asc } from "drizzle-orm";
+import { HiMiniCube, HiMiniSparkles } from "react-icons/hi2";
 
 const stateColors: Record<string, string> = {
   installed:    "bg-green-100 text-green-800",
@@ -20,12 +21,21 @@ export default async function ModulesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">Modules</h2>
-        <p className="text-muted-foreground">Install, upgrade, and manage platform modules.</p>
+      <div className="flex items-start justify-between gap-4 rounded-[1.5rem] border border-border bg-background p-6">
+        <div>
+          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-muted text-slate-700">
+            <HiMiniCube className="h-5 w-5" />
+          </div>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-950">Modules</h2>
+          <p className="mt-2 text-sm text-slate-600">Install, upgrade, and manage platform modules with a clear view of lifecycle state.</p>
+        </div>
+        <div className="hidden items-center gap-2 rounded-xl border border-border bg-muted/30 px-4 py-3 text-sm font-medium text-slate-600 sm:flex">
+          <HiMiniSparkles className="h-4 w-4 text-slate-500" />
+          Module registry
+        </div>
       </div>
 
-      <div className="rounded-lg border border-border overflow-hidden">
+      <div className="overflow-hidden rounded-[1.25rem] border border-border bg-background">
         {rows.length === 0 ? (
           <div className="p-6">
             <p className="text-sm text-muted-foreground">No modules registered yet.</p>
@@ -46,14 +56,14 @@ export default async function ModulesPage() {
                 <tr key={mod.id} className="border-b border-border last:border-0 hover:bg-muted/20">
                   <td className="px-4 py-3 font-medium">{mod.title}</td>
                   <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{mod.version}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{mod.installedVersion ?? "—"}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{mod.installedVersion ?? "Not installed"}</td>
                   <td className="px-4 py-3">
                     <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${stateColors[mod.state] ?? "bg-gray-100 text-gray-600"}`}>
                       {mod.state}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                    {mod.installedAt ? mod.installedAt.toLocaleString() : "—"}
+                    {mod.installedAt ? mod.installedAt.toLocaleString() : "Not available"}
                   </td>
                 </tr>
               ))}

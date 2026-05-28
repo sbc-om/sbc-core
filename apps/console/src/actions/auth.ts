@@ -8,7 +8,7 @@ import { verifyPassword, createSession, invalidateSession } from "@sbc/auth";
 import { SESSION_COOKIE, getSession } from "@/lib/session";
 import { SYSTEM_TENANT_ID } from "@/lib/bootstrap";
 
-export type LoginState = { error: string } | undefined;
+export type LoginState = { error: string } | { ok: true } | undefined;
 
 export async function loginAction(
   _prev: LoginState,
@@ -41,7 +41,7 @@ export async function loginAction(
     maxAge:   7 * 24 * 60 * 60,
   });
 
-  redirect("/");
+  return { ok: true };
 }
 
 export async function logoutAction() {
