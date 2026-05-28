@@ -17,6 +17,7 @@
     "@sbc/rbac": "workspace:*",
     "@sbc/sdk": "workspace:*",
     "@sbc/module-base": "workspace:*",
+    "@sbc/module-iam":  "workspace:*",
     "@sbc/ui": "workspace:*",
     "drizzle-orm": "^0.43.1",
     "next": "15.3.2",

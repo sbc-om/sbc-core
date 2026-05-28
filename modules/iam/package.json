@@ -1,0 +1,30 @@
+{
+  "name": "@sbc/module-iam",
+  "version": "1.0.0",
+  "private": true,
+  "exports": {
+    ".":          "./src/index.ts",
+    "./manifest": "./src/manifest.ts",
+    "./services": "./src/services/index.ts",
+    "./actions":  "./src/actions/index.ts",
+    "./schemas":  "./src/schemas/index.ts"
+  },
+  "dependencies": {
+    "@sbc/database": "workspace:*",
+    "@sbc/auth":     "workspace:*",
+    "@sbc/rbac":     "workspace:*",
+    "@sbc/sdk":      "workspace:*",
+    "drizzle-orm":   "^0.43.1",
+    "zod":           "^3.25.32"
+  },
+  "peerDependencies": {
+    "next": ">=15.0.0"
+  },
+  "devDependencies": {
+    "@sbc/config": "workspace:*",
+    "@types/node": "^20.19.1",
+    "next":        "15.3.2",
+    "react":       "^19.0.0",
+    "typescript":  "^5.8.3"
+  }
+}

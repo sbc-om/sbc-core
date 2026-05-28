@@ -1,4 +1,4 @@
-import { db, menus } from "@sbc/database";
+import { db, menus, users } from "@sbc/database";
 import { eq, and, asc } from "drizzle-orm";
 import { hasPermission } from "@sbc/rbac";
 import type { MenuItemDescriptor } from "@sbc/sdk";
@@ -76,10 +76,17 @@ export async function getMenusForUser(
     .where(and(eq(menus.isActive, true)))
     .orderBy(asc(menus.order));
 
+  // Super admins see all menus
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+    columns: { isSuperAdmin: true },
+  });
+  const isSuperAdmin = user?.isSuperAdmin ?? false;
+
   // Filter by permission
   const visible: typeof allMenus = [];
   for (const menu of allMenus) {
-    if (!menu.permission) {
+    if (!menu.permission || isSuperAdmin) {
       visible.push(menu);
       continue;
     }

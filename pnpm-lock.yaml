@@ -29,6 +29,9 @@ importers:
       '@sbc/module-base':
         specifier: workspace:*
         version: link:../../modules/base
+      '@sbc/module-iam':
+        specifier: workspace:*
+        version: link:../../modules/iam
       '@sbc/rbac':
         specifier: workspace:*
         version: link:../../packages/rbac
@@ -82,6 +85,43 @@ importers:
       '@sbc/config':
         specifier: workspace:*
         version: link:../../packages/config
+      typescript:
+        specifier: ^5.8.3
+        version: 5.9.3
+
+  modules/iam:
+    dependencies:
+      '@sbc/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
+      '@sbc/database':
+        specifier: workspace:*
+        version: link:../../packages/database
+      '@sbc/rbac':
+        specifier: workspace:*
+        version: link:../../packages/rbac
+      '@sbc/sdk':
+        specifier: workspace:*
+        version: link:../../packages/sdk
+      drizzle-orm:
+        specifier: ^0.43.1
+        version: 0.43.1(postgres@3.4.9)
+      zod:
+        specifier: ^3.25.32
+        version: 3.25.76
+    devDependencies:
+      '@sbc/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      '@types/node':
+        specifier: ^20.19.1
+        version: 20.19.41
+      next:
+        specifier: 15.3.2
+        version: 15.3.2(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      react:
+        specifier: ^19.0.0
+        version: 19.2.6
       typescript:
         specifier: ^5.8.3
         version: 5.9.3
