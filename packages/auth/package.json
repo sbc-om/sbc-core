@@ -1,0 +1,23 @@
+{
+  "name": "@sbc/auth",
+  "version": "0.1.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@sbc/database": "workspace:*",
+    "bcryptjs": "^3.0.2",
+    "drizzle-orm": "^0.43.1",
+    "jose": "^5.10.0"
+  },
+  "devDependencies": {
+    "@sbc/config": "workspace:*",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20.19.1",
+    "typescript": "^5.8.3"
+  }
+}

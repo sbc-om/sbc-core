@@ -1,0 +1,16 @@
+{
+  "name": "@sbc/module-base",
+  "version": "1.0.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./manifest": "./src/manifest.ts"
+  },
+  "dependencies": {
+    "@sbc/sdk": "workspace:*"
+  },
+  "devDependencies": {
+    "@sbc/config": "workspace:*",
+    "typescript": "^5.8.3"
+  }
+}

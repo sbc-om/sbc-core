@@ -1,10 +1,11 @@
 node_modules
 .env
+.env.local
+.env.*.local
 dist
 coverage
 *.log
 .idea
-.vscode
 .DS_Store
 *.bak
 *.tmp
@@ -14,3 +15,5 @@ build
 *.swp
 *.swo
 *.swn
+.turbo
+*.tsbuildinfo

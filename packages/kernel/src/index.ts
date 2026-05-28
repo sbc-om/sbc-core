@@ -1,0 +1,10 @@
+export { moduleRegistry }                           from "./registry";
+export type { ModuleRegistryEntry }                 from "./registry";
+export { topologicalSort, getUninstallOrder, detectCircularDeps, CircularDependencyError, MissingDependencyError } from "./resolver";
+export { installModule, uninstallModule, upgradeModule } from "./installer";
+export { bootstrapKernel, getLoadOrder }            from "./loader";
+export { registerMenus, deregisterMenus, getMenusForUser } from "./menus";
+export type { MenuTreeItem }                        from "./menus";
+export { audit }                                    from "./audit";
+export type { AuditEntry }                          from "./audit";
+export { getSetting, setSetting, registerSettings } from "./settings";

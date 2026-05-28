@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sleep 10 && cat /tmp/sbc-boot2.log)",
+      "Read(//tmp/**)"
+    ]
+  }
+}
