@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createUser, updateUser } from "@sbc/module-iam/services";
 import { replaceDocumentLink } from "@sbc/module-documents/services";
 import { SYSTEM_TENANT_ID } from "@/lib/bootstrap";
+import { buildDocumentUrl } from "@/lib/documents";
 import { getSessionUser } from "@/lib/session";
 
 type LinkVisibility = "internal" | "tenant" | "public";
@@ -26,8 +27,16 @@ function getVisibility(formData: FormData): LinkVisibility {
   return "internal";
 }
 
-function buildFileUrl(documentId: string | null): string | null {
-  return documentId ? `/api/files/${documentId}` : null;
+function buildFileUrl(documentId: string | null, userId: string): string | null {
+  if (!documentId) return null;
+
+  return buildDocumentUrl(documentId, {
+    tenantId: SYSTEM_TENANT_ID,
+    resourceModule: "iam",
+    resourceType: "user",
+    resourceId: userId,
+    fieldName: "avatar",
+  });
 }
 
 export async function createConsoleUserAction(formData: FormData) {
@@ -47,7 +56,7 @@ export async function createConsoleUserAction(formData: FormData) {
       name,
       email,
       password,
-      avatarUrl: buildFileUrl(avatarDocumentId) ?? undefined,
+      avatarUrl: undefined,
     }, SYSTEM_TENANT_ID);
 
     if (!user) {
@@ -57,6 +66,7 @@ export async function createConsoleUserAction(formData: FormData) {
     await replaceDocumentLink({
       tenantId: SYSTEM_TENANT_ID,
       userId: actor?.id ?? null,
+      ownerUserId: actor?.isSuperAdmin ? undefined : actor?.id,
       documentId: avatarDocumentId,
       resourceModule: "iam",
       resourceType: "user",
@@ -66,6 +76,12 @@ export async function createConsoleUserAction(formData: FormData) {
       visibility: avatarVisibility,
       sortOrder: 0,
     });
+
+    if (avatarDocumentId) {
+      await updateUser(user.id, {
+        avatarUrl: buildFileUrl(avatarDocumentId, user.id),
+      });
+    }
 
     revalidatePath("/users");
     return { success: true };
@@ -89,12 +105,13 @@ export async function updateConsoleUserAction(id: string, formData: FormData) {
       ...(name ? { name } : {}),
       ...(email ? { email } : {}),
       ...(password ? { password } : {}),
-      avatarUrl: avatarDocumentId ? buildFileUrl(avatarDocumentId) : null,
+      avatarUrl: avatarDocumentId ? buildFileUrl(avatarDocumentId, id) : null,
     });
 
     await replaceDocumentLink({
       tenantId: SYSTEM_TENANT_ID,
       userId: actor?.id ?? null,
+      ownerUserId: actor?.isSuperAdmin ? undefined : actor?.id,
       documentId: avatarDocumentId,
       resourceModule: "iam",
       resourceType: "user",

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   deleteDocument,
+  getDocumentById,
+  getDocumentLinkVisibility,
   getDocumentVisibility,
   readDocumentContent,
 } from "@sbc/module-documents/services";
@@ -10,6 +12,19 @@ import { getTenantIdForUser, requirePermissionForUser } from "@/lib/authorizatio
 function contentDisposition(filename: string, mode: "inline" | "attachment"): string {
   const encoded = encodeURIComponent(filename);
   return `${mode}; filename*=UTF-8''${encoded}`;
+}
+
+function getContextParams(request: NextRequest) {
+  const resourceModule = request.nextUrl.searchParams.get("resourceModule") ?? undefined;
+  const resourceType = request.nextUrl.searchParams.get("resourceType") ?? undefined;
+  const resourceId = request.nextUrl.searchParams.get("resourceId") ?? undefined;
+  const fieldName = request.nextUrl.searchParams.get("fieldName") ?? undefined;
+
+  if (!resourceModule || !resourceType || !resourceId || !fieldName) {
+    return null;
+  }
+
+  return { resourceModule, resourceType, resourceId, fieldName };
 }
 
 export async function GET(
@@ -25,18 +40,34 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const visibility = await getDocumentVisibility(id, tenantId);
+    const document = await getDocumentById(id, tenantId);
 
-    if (visibility === "public") {
+    if (!document) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
+    const isOwner = Boolean(user && document.createdBy === user.id);
+    const isSuperAdmin = Boolean(user?.isSuperAdmin);
+    const contextParams = getContextParams(request);
+    const contextVisibility = contextParams
+      ? await getDocumentLinkVisibility({ documentId: id, tenantId, ...contextParams })
+      : null;
+    const directVisibility = await getDocumentVisibility(id, tenantId);
+    const visibility = contextVisibility ?? directVisibility;
+
+    if (isOwner || isSuperAdmin) {
+      // Owners and super admins may access the underlying file directly.
+    } else if (visibility === "public") {
       // Public files may be served without an authenticated session.
-    } else if (visibility === "tenant") {
-      if (!user || getTenantIdForUser(user) !== tenantId) {
-        return NextResponse.json({ error: user ? "Forbidden" : "Unauthorized" }, { status: user ? 403 : 401 });
+    } else if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    } else if (contextVisibility === "tenant") {
+      if (getTenantIdForUser(user) !== tenantId) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
+    } else if (contextVisibility === "internal") {
+      await requirePermissionForUser(user, "documents.files.view");
     } else {
-      if (!user) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
       await requirePermissionForUser(user, "documents.files.view");
     }
 
@@ -77,7 +108,8 @@ export async function DELETE(
 
     const { id } = await context.params;
     const tenantId = getTenantIdForUser(user);
-    const deleted = await deleteDocument(id, tenantId, user.id);
+    const ownerUserId = user.isSuperAdmin ? undefined : user.id;
+    const deleted = await deleteDocument(id, tenantId, user.id, ownerUserId);
 
     if (!deleted) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });

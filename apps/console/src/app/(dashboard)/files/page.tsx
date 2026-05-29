@@ -45,9 +45,10 @@ export default async function FilesPage() {
   }
 
   const tenantId = getTenantIdForUser(user);
+  const ownerUserId = user.isSuperAdmin ? undefined : user.id;
   const [files, stats, canUpload, canDelete] = await Promise.all([
-    listDocuments({ tenantId }),
-    getDocumentStats(tenantId),
+    listDocuments({ tenantId, ownerUserId }),
+    getDocumentStats(tenantId, ownerUserId),
     hasPermissionForUser(user, "documents.files.upload"),
     hasPermissionForUser(user, "documents.files.delete"),
   ]);

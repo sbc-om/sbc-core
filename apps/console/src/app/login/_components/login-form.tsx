@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useToast } from "@/components/system-feedback";
 
 export function LoginForm() {
-  const [error,   setError]   = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const toast = useToast();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -12,7 +13,6 @@ export function LoginForm() {
     const email    = (form.elements.namedItem("email")    as HTMLInputElement).value.trim();
     const password = (form.elements.namedItem("password") as HTMLInputElement).value;
 
-    setError(null);
     setPending(true);
 
     try {
@@ -24,14 +24,14 @@ export function LoginForm() {
       const data = await res.json() as { ok?: boolean; error?: string };
 
       if (!res.ok || data.error) {
-        setError(data.error ?? "Login failed");
+        toast.error("Sign in failed", data.error ?? "Login failed");
         setPending(false);
         return;
       }
 
       window.location.replace("/");
     } catch {
-      setError("Network error. Please try again.");
+      toast.error("Network error", "Please try again.");
       setPending(false);
     }
   }
@@ -61,9 +61,6 @@ export function LoginForm() {
           className="w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm outline-none transition focus:ring-2 focus:ring-ring focus:border-transparent"
         />
       </div>
-      {error && (
-        <div className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">{error}</div>
-      )}
       <button
         type="submit"
         disabled={pending}

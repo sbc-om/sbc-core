@@ -14,6 +14,7 @@ export interface UploadableFile {
 
 export interface DocumentFilters {
   tenantId: string;
+  ownerUserId?: string;
   query?: string;
   folder?: string;
   limit?: number;
@@ -38,6 +39,19 @@ export interface DocumentStats {
 
 const DEFAULT_FOLDER = "general";
 const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+function createPermissionDeniedError(message: string): Error {
+  const error = new Error(message);
+  error.name = "PermissionDeniedError";
+  return error;
+}
+
+function assertDocumentOwnership(document: Pick<DocumentFile, "createdBy">, ownerUserId: string | undefined): void {
+  if (!ownerUserId) return;
+  if (document.createdBy !== ownerUserId) {
+    throw createPermissionDeniedError("You can only manage files that you uploaded");
+  }
+}
 
 function sanitizeSegment(input: string | undefined, fallback: string): string {
   const sanitized = (input ?? "")
@@ -174,6 +188,10 @@ export async function listDocuments(filters: DocumentFilters): Promise<DocumentF
     eq(documentsFiles.isDeleted, false),
   ];
 
+  if (filters.ownerUserId) {
+    clauses.push(eq(documentsFiles.createdBy, filters.ownerUserId));
+  }
+
   if (filters.query?.trim()) {
     const search = `%${filters.query.trim()}%`;
     clauses.push(
@@ -198,8 +216,8 @@ export async function listDocuments(filters: DocumentFilters): Promise<DocumentF
     .limit(filters.limit ?? 200);
 }
 
-export async function getDocumentStats(tenantId: string): Promise<DocumentStats> {
-  const files = await listDocuments({ tenantId, limit: 500 });
+export async function getDocumentStats(tenantId: string, ownerUserId?: string): Promise<DocumentStats> {
+  const files = await listDocuments({ tenantId, ownerUserId, limit: 500 });
   const recentThreshold = Date.now() - ONE_WEEK_MS;
 
   return {
@@ -285,9 +303,16 @@ export async function readDocumentContent(id: string, tenantId: string): Promise
   return { document, content };
 }
 
-export async function deleteDocument(id: string, tenantId: string, userId: string): Promise<DocumentFile | null> {
+export async function deleteDocument(
+  id: string,
+  tenantId: string,
+  userId: string,
+  ownerUserId?: string
+): Promise<DocumentFile | null> {
   const existing = await getDocumentById(id, tenantId);
   if (!existing) return null;
+
+  assertDocumentOwnership(existing, ownerUserId);
 
   try {
     await removeObject(existing.storageKey);

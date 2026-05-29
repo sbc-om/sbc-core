@@ -14,8 +14,13 @@ export interface ResourceLinkKey {
   fieldName: string;
 }
 
+export interface DocumentLinkLookup extends ResourceLinkKey {
+  documentId: string;
+}
+
 export interface ReplaceDocumentLinkInput extends ResourceLinkKey {
   userId: string | null;
+  ownerUserId?: string;
   documentId: string | null;
   linkLabel?: string;
   visibility?: DocumentVisibility;
@@ -24,6 +29,7 @@ export interface ReplaceDocumentLinkInput extends ResourceLinkKey {
 
 export interface AddDocumentLinkInput extends ResourceLinkKey {
   userId: string | null;
+  ownerUserId?: string;
   documentId: string;
   linkLabel?: string;
   visibility?: DocumentVisibility;
@@ -50,6 +56,7 @@ export interface UpdateDocumentLinkInput {
   tenantId: string;
   linkId: string;
   userId: string | null;
+  ownerUserId?: string;
   linkLabel?: string;
   visibility?: DocumentVisibility;
   sortOrder?: number;
@@ -60,6 +67,43 @@ const visibilityRank: Record<DocumentVisibility, number> = {
   tenant: 1,
   public: 2,
 };
+
+function createPermissionDeniedError(message: string): Error {
+  const error = new Error(message);
+  error.name = "PermissionDeniedError";
+  return error;
+}
+
+function assertDocumentOwnership(
+  document: { createdBy: string | null },
+  ownerUserId: string | undefined
+): void {
+  if (!ownerUserId) return;
+  if (document.createdBy !== ownerUserId) {
+    throw createPermissionDeniedError("You can only manage links for files that you uploaded");
+  }
+}
+
+async function getLinkWithDocument(linkId: string, tenantId: string) {
+  const [row] = await db
+    .select({
+      link: documentLinks,
+      document: documentsFiles,
+    })
+    .from(documentLinks)
+    .innerJoin(documentsFiles, eq(documentLinks.documentId, documentsFiles.id))
+    .where(
+      and(
+        eq(documentLinks.id, linkId),
+        eq(documentLinks.tenantId, tenantId),
+        eq(documentLinks.isDeleted, false),
+        eq(documentsFiles.isDeleted, false)
+      )
+    )
+    .limit(1);
+
+  return row ?? null;
+}
 
 export async function getLatestDocumentLink(key: ResourceLinkKey): Promise<DocumentLink | null> {
   await ensureDocumentsInfrastructure();
@@ -116,6 +160,7 @@ export async function replaceDocumentLink(input: ReplaceDocumentLinkInput): Prom
   if (!document) {
     throw new Error("Referenced document does not exist for this tenant");
   }
+  assertDocumentOwnership(document, input.ownerUserId);
 
   const [created] = await db
     .insert(documentLinks)
@@ -148,6 +193,7 @@ export async function addDocumentLink(input: AddDocumentLinkInput): Promise<Docu
   if (!document) {
     throw new Error("Referenced document does not exist for this tenant");
   }
+  assertDocumentOwnership(document, input.ownerUserId);
 
   const [existing] = await db
     .select()
@@ -244,8 +290,41 @@ export async function getDocumentVisibility(documentId: string, tenantId: string
   }, "internal");
 }
 
+export async function getDocumentLinkVisibility(input: DocumentLinkLookup): Promise<DocumentVisibility | null> {
+  await ensureDocumentsInfrastructure();
+
+  const [row] = await db
+    .select({ visibility: documentLinks.visibility })
+    .from(documentLinks)
+    .where(
+      and(
+        eq(documentLinks.documentId, input.documentId),
+        eq(documentLinks.tenantId, input.tenantId),
+        eq(documentLinks.resourceModule, input.resourceModule),
+        eq(documentLinks.resourceType, input.resourceType),
+        eq(documentLinks.resourceId, input.resourceId),
+        eq(documentLinks.fieldName, input.fieldName),
+        eq(documentLinks.isDeleted, false)
+      )
+    )
+    .limit(1);
+
+  if (!row) {
+    return null;
+  }
+
+  return (row.visibility as DocumentVisibility) ?? "internal";
+}
+
 export async function updateDocumentLink(input: UpdateDocumentLinkInput): Promise<DocumentLink | null> {
   await ensureDocumentsInfrastructure();
+
+  const existing = await getLinkWithDocument(input.linkId, input.tenantId);
+  if (!existing) {
+    return null;
+  }
+
+  assertDocumentOwnership(existing.document, input.ownerUserId);
 
   const [updated] = await db
     .update(documentLinks)
@@ -268,8 +347,20 @@ export async function updateDocumentLink(input: UpdateDocumentLinkInput): Promis
   return updated ?? null;
 }
 
-export async function removeDocumentLink(linkId: string, tenantId: string, userId: string | null): Promise<DocumentLink | null> {
+export async function removeDocumentLink(
+  linkId: string,
+  tenantId: string,
+  userId: string | null,
+  ownerUserId?: string
+): Promise<DocumentLink | null> {
   await ensureDocumentsInfrastructure();
+
+  const existing = await getLinkWithDocument(linkId, tenantId);
+  if (!existing) {
+    return null;
+  }
+
+  assertDocumentOwnership(existing.document, ownerUserId);
 
   const [removed] = await db
     .update(documentLinks)

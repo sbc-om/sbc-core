@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { HiArrowRight, HiMiniUserGroup } from "react-icons/hi2";
 import { listUsers } from "@sbc/module-iam/services";
+import { buildDocumentUrl, extractDocumentId } from "@/lib/documents";
 import { CreateUserDialog } from "./_components/create-user-dialog";
 import { ToggleActiveButton } from "./_components/toggle-active-button";
 
@@ -42,9 +43,14 @@ export default async function UsersPage() {
                 <tr key={user.id} className="border-b border-border last:border-0 hover:bg-muted/20">
                   <td className="px-4 py-3 font-medium">
                     <div className="flex items-center gap-3">
-                      {user.avatarUrl ? (
+                      {extractDocumentId(user.avatarUrl) ? (
                         <img
-                          src={user.avatarUrl}
+                          src={buildDocumentUrl(extractDocumentId(user.avatarUrl)!, {
+                            resourceModule: "iam",
+                            resourceType: "user",
+                            resourceId: user.id,
+                            fieldName: "avatar",
+                          })}
                           alt={user.name}
                           className="h-10 w-10 rounded-full object-cover"
                         />

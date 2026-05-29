@@ -16,13 +16,47 @@ import {
   getFilePreviewKind,
   type FileManagerItem,
 } from "./types";
+import { useToast } from "@/components/system-feedback";
 
 interface Props {
   buttonLabel?: string;
   title?: string;
   description?: string;
   selectedFileId?: string | null;
+  accept?: string;
+  initialFolder?: string;
+  uploadDefaults?: {
+    folder?: string;
+    moduleName?: string;
+    tags?: string;
+  };
   onSelect(file: FileManagerItem): void;
+}
+
+function matchesAccept(file: Pick<FileManagerItem, "mimeType" | "extension">, accept: string | undefined) {
+  if (!accept?.trim()) return true;
+
+  const tokens = accept
+    .split(",")
+    .map((token) => token.trim().toLowerCase())
+    .filter(Boolean);
+
+  if (tokens.length === 0) return true;
+
+  const mimeType = file.mimeType.toLowerCase();
+  const extension = file.extension ? `.${file.extension.toLowerCase()}` : "";
+
+  return tokens.some((token) => {
+    if (token.endsWith("/*")) {
+      return mimeType.startsWith(token.slice(0, -1));
+    }
+
+    if (token.startsWith(".")) {
+      return extension === token;
+    }
+
+    return mimeType === token;
+  });
 }
 
 function fileIcon(mimeType: string) {
@@ -38,28 +72,42 @@ export function FilePickerDialog({
   title = "Choose file from library",
   description = "Search the central file manager or upload a new asset inline, then attach it immediately.",
   selectedFileId,
+  accept,
+  initialFolder,
+  uploadDefaults,
   onSelect,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [files, setFiles] = useState<FileManagerItem[]>([]);
   const [query, setQuery] = useState("");
-  const [folder, setFolder] = useState("all");
+  const [folder, setFolder] = useState(initialFolder?.trim() || "all");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadTitle, setUploadTitle] = useState("");
-  const [uploadFolder, setUploadFolder] = useState("");
-  const [uploadModuleName, setUploadModuleName] = useState("");
-  const [uploadTags, setUploadTags] = useState("");
-  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadFolder, setUploadFolder] = useState(uploadDefaults?.folder ?? "");
+  const [uploadModuleName, setUploadModuleName] = useState(uploadDefaults?.moduleName ?? "");
+  const [uploadTags, setUploadTags] = useState(uploadDefaults?.tags ?? "");
   const [uploadPending, startUploadTransition] = useTransition();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const deferredQuery = useDeferredValue(query);
+  const toast = useToast();
+
+  const visibleFiles = useMemo(() => files.filter((file) => matchesAccept(file, accept)), [accept, files]);
 
   const folders = useMemo(() => {
     return ["all", ...Array.from(new Set(files.map((file) => file.folder))).sort()];
   }, [files]);
+
+  useEffect(() => {
+    setFolder(initialFolder?.trim() || "all");
+  }, [initialFolder]);
+
+  useEffect(() => {
+    setUploadFolder(uploadDefaults?.folder ?? "");
+    setUploadModuleName(uploadDefaults?.moduleName ?? "");
+    setUploadTags(uploadDefaults?.tags ?? "");
+  }, [uploadDefaults?.folder, uploadDefaults?.moduleName, uploadDefaults?.tags]);
 
   useEffect(() => {
     if (!open) return;
@@ -68,7 +116,6 @@ export function FilePickerDialog({
 
     async function load() {
       setLoading(true);
-      setError(null);
 
       try {
         const params = new URLSearchParams();
@@ -90,7 +137,7 @@ export function FilePickerDialog({
         }
       } catch (requestError) {
         if (!cancelled) {
-          setError(requestError instanceof Error ? requestError.message : "Unable to load file library");
+          toast.error("Library load failed", requestError instanceof Error ? requestError.message : "Unable to load file library");
         }
       } finally {
         if (!cancelled) {
@@ -109,10 +156,9 @@ export function FilePickerDialog({
   function resetUploadForm() {
     setUploadFile(null);
     setUploadTitle("");
-    setUploadFolder("");
-    setUploadModuleName("");
-    setUploadTags("");
-    setUploadError(null);
+    setUploadFolder(uploadDefaults?.folder ?? "");
+    setUploadModuleName(uploadDefaults?.moduleName ?? "");
+    setUploadTags(uploadDefaults?.tags ?? "");
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -120,11 +166,9 @@ export function FilePickerDialog({
 
   function handleUpload() {
     if (!uploadFile) {
-      setUploadError("Choose a file to upload.");
+      toast.info("No file selected", "Choose a file to upload.");
       return;
     }
-
-    setUploadError(null);
 
     startUploadTransition(async () => {
       try {
@@ -159,8 +203,9 @@ export function FilePickerDialog({
         resetUploadForm();
         onSelect(createdFile);
         setOpen(false);
+        toast.success("File uploaded", "The new asset is ready and selected.");
       } catch (requestError) {
-        setUploadError(requestError instanceof Error ? requestError.message : "Unable to upload file");
+        toast.error("Upload failed", requestError instanceof Error ? requestError.message : "Unable to upload file");
       }
     });
   }
@@ -230,22 +275,16 @@ export function FilePickerDialog({
             <div className="grid gap-0 lg:grid-cols-[1.45fr_0.9fr]">
               <div className="min-h-0 border-b border-border lg:border-b-0 lg:border-r">
                 <div className="flex-1 overflow-y-auto px-6 py-5">
-              {error && (
-                <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                  {error}
-                </div>
-              )}
-
               {loading ? (
                 <div className="rounded-2xl border border-border bg-slate-50 p-10 text-center text-sm text-slate-500">Loading file library...</div>
-              ) : files.length === 0 ? (
+              ) : visibleFiles.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50/70 p-10 text-center">
                   <p className="text-base font-semibold text-slate-900">No files found</p>
-                  <p className="mt-2 text-sm text-slate-500">Try another search or folder filter.</p>
+                  <p className="mt-2 text-sm text-slate-500">Try another search, folder filter, or upload a new file.</p>
                 </div>
               ) : (
                 <div className="grid gap-3">
-                  {files.map((file) => {
+                  {visibleFiles.map((file) => {
                     const previewKind = getFilePreviewKind(file.mimeType);
                     const isSelected = file.id === selectedFileId;
 
@@ -331,6 +370,7 @@ export function FilePickerDialog({
                       <input
                         ref={fileInputRef}
                         type="file"
+                        accept={accept}
                         onChange={(event) => setUploadFile(event.target.files?.[0] ?? null)}
                         className="block w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-slate-700 file:mr-4 file:rounded-lg file:border-0 file:bg-teal-50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-teal-700"
                       />
@@ -380,13 +420,6 @@ export function FilePickerDialog({
                         className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm outline-none transition focus:border-teal-500"
                       />
                     </label>
-
-                    {uploadError && (
-                      <div className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
-                        {uploadError}
-                      </div>
-                    )}
-
                     <div className="flex gap-2">
                       <button
                         type="button"

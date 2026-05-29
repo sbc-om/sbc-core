@@ -67,7 +67,7 @@ export default async function UserDetailPage({ params }: Props) {
         {/* Edit profile */}
         <section className="rounded-lg border border-border p-6 space-y-4">
           <h3 className="font-semibold">Profile</h3>
-          <ProfileForm user={user} initialAvatar={initialAvatar} action={updateWithId} />
+          <ProfileForm user={{ id: user.id, name: user.name, email: user.email, avatarUrl: user.avatarUrl }} initialAvatar={initialAvatar} action={updateWithId} />
         </section>
 
         {/* Role assignment */}

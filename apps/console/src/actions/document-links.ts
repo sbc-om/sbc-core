@@ -31,6 +31,7 @@ export async function updateDocumentLinkAction(args: {
     linkId: args.linkId,
     tenantId: args.tenantId,
     userId: actor?.id ?? null,
+    ownerUserId: actor?.isSuperAdmin ? undefined : actor?.id,
     linkLabel: args.linkLabel,
     visibility: normalizeVisibility(args.visibility),
     sortOrder: args.sortOrder,
@@ -46,7 +47,12 @@ export async function removeDocumentLinkAction(args: {
 }) {
   const actor = await getSessionUser();
 
-  await removeDocumentLink(args.linkId, args.tenantId, actor?.id ?? null);
+  await removeDocumentLink(
+    args.linkId,
+    args.tenantId,
+    actor?.id ?? null,
+    actor?.isSuperAdmin ? undefined : actor?.id
+  );
   revalidatePath(args.resourcePath);
 }
 
@@ -67,6 +73,7 @@ export async function addDocumentLinkAction(args: {
   await addDocumentLink({
     tenantId: args.tenantId,
     userId: actor?.id ?? null,
+    ownerUserId: actor?.isSuperAdmin ? undefined : actor?.id,
     documentId: args.documentId,
     resourceModule: args.resourceModule,
     resourceType: args.resourceType,

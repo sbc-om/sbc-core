@@ -30,12 +30,13 @@ export async function GET(request: NextRequest) {
     await requirePermissionForUser(user, "documents.files.view");
 
     const tenantId = getTenantIdForUser(user);
+    const ownerUserId = user.isSuperAdmin ? undefined : user.id;
     const query = request.nextUrl.searchParams.get("query") ?? undefined;
     const folder = request.nextUrl.searchParams.get("folder") ?? undefined;
 
     const [files, stats] = await Promise.all([
-      listDocuments({ tenantId, query, folder }),
-      getDocumentStats(tenantId),
+      listDocuments({ tenantId, ownerUserId, query, folder }),
+      getDocumentStats(tenantId, ownerUserId),
     ]);
 
     return NextResponse.json({ files, stats });

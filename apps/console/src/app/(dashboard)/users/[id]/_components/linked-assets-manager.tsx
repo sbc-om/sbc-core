@@ -8,7 +8,9 @@ import {
   updateDocumentLinkAction,
 } from "@/actions/document-links";
 import { FilePickerDialog } from "@/components/documents/file-picker-dialog";
+import { useConfirm, useToast } from "@/components/system-feedback";
 import { formatFileSize, type FileManagerItem } from "@/components/documents/types";
+import { buildDocumentUrl } from "@/lib/documents";
 
 type Visibility = "internal" | "tenant" | "public";
 
@@ -38,35 +40,66 @@ interface Props {
   resourceId: string;
 }
 
-function LinkedAssetCard({ item, tenantId, resourcePath }: { item: LinkedAssetItem; tenantId: string; resourcePath: string }) {
+function LinkedAssetCard({
+  item,
+  tenantId,
+  resourcePath,
+  resourceModule,
+  resourceType,
+  resourceId,
+}: {
+  item: LinkedAssetItem;
+  tenantId: string;
+  resourcePath: string;
+  resourceModule: string;
+  resourceType: string;
+  resourceId: string;
+}) {
   const [linkLabel, setLinkLabel] = useState(item.link.linkLabel);
   const [visibility, setVisibility] = useState<Visibility>(item.link.visibility);
   const [sortOrder, setSortOrder] = useState(String(item.link.sortOrder));
   const [pending, startTransition] = useTransition();
+  const confirm = useConfirm();
+  const toast = useToast();
 
   function save() {
     startTransition(async () => {
-      await updateDocumentLinkAction({
-        linkId: item.link.id,
-        tenantId,
-        resourcePath,
-        linkLabel,
-        visibility,
-        sortOrder: Number(sortOrder) || 0,
-      });
+      try {
+        await updateDocumentLinkAction({
+          linkId: item.link.id,
+          tenantId,
+          resourcePath,
+          linkLabel,
+          visibility,
+          sortOrder: Number(sortOrder) || 0,
+        });
+        toast.success("Asset updated", "Linked asset metadata was saved.");
+      } catch (error) {
+        toast.error("Save failed", error instanceof Error ? error.message : "Unable to save asset metadata.");
+      }
     });
   }
 
-  function remove() {
-    const confirmed = window.confirm("Remove this linked asset from the record?");
-    if (!confirmed) return;
+  async function remove() {
+    const accepted = await confirm({
+      title: "Unlink asset?",
+      description: "This will remove the relation from the record. The original file will stay محفوظ in the system library.",
+      confirmLabel: "Unlink asset",
+      tone: "danger",
+    });
+    if (!accepted) return;
 
     startTransition(async () => {
-      await removeDocumentLinkAction({
-        linkId: item.link.id,
-        tenantId,
-        resourcePath,
-      });
+      try {
+        await removeDocumentLinkAction({
+          linkId: item.link.id,
+          tenantId,
+          resourcePath,
+        });
+        toast.success("Asset unlinked", "The file relation was removed from this record.");
+      } catch (error) {
+        toast.error("Unlink failed", error instanceof Error ? error.message : "Unable to unlink asset.");
+      }
     });
   }
 
@@ -85,7 +118,13 @@ function LinkedAssetCard({ item, tenantId, resourcePath }: { item: LinkedAssetIt
 
         <div className="flex flex-wrap items-center gap-2">
           <a
-            href={`/api/files/${item.document.id}`}
+            href={buildDocumentUrl(item.document.id, {
+              tenantId,
+              resourceModule,
+              resourceType,
+              resourceId,
+              fieldName: item.link.fieldName,
+            })}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-2 rounded-md border border-input px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-accent"
@@ -164,29 +203,38 @@ function AddLinkedAssetCard({
   const [visibility, setVisibility] = useState<Visibility>("internal");
   const [sortOrder, setSortOrder] = useState("10");
   const [pending, startTransition] = useTransition();
+  const toast = useToast();
 
   function add() {
-    if (!selectedFile) return;
+    if (!selectedFile) {
+      toast.info("No file selected", "Choose a file from the library before linking it.");
+      return;
+    }
 
     startTransition(async () => {
-      await addDocumentLinkAction({
-        tenantId,
-        resourceModule,
-        resourceType,
-        resourceId,
-        fieldName: fieldName.trim() || "attachment",
-        documentId: selectedFile.id,
-        resourcePath,
-        linkLabel,
-        visibility,
-        sortOrder: Number(sortOrder) || 0,
-      });
+      try {
+        await addDocumentLinkAction({
+          tenantId,
+          resourceModule,
+          resourceType,
+          resourceId,
+          fieldName: fieldName.trim() || "attachment",
+          documentId: selectedFile.id,
+          resourcePath,
+          linkLabel,
+          visibility,
+          sortOrder: Number(sortOrder) || 0,
+        });
 
-      setSelectedFile(null);
-      setFieldName("attachment");
-      setLinkLabel("Supporting document");
-      setVisibility("internal");
-      setSortOrder("10");
+        setSelectedFile(null);
+        setFieldName("attachment");
+        setLinkLabel("Supporting document");
+        setVisibility("internal");
+        setSortOrder("10");
+        toast.success("Asset linked", "The document is now attached to this record.");
+      } catch (error) {
+        toast.error("Link failed", error instanceof Error ? error.message : "Unable to link the selected asset.");
+      }
     });
   }
 
@@ -201,6 +249,12 @@ function AddLinkedAssetCard({
           buttonLabel={selectedFile ? "Replace file" : "Choose file"}
           title="Choose asset to link"
           description="Select an existing file from the global file manager and attach it to this record with structured metadata."
+          initialFolder="users/assets"
+          uploadDefaults={{
+            folder: "users/assets",
+            moduleName: "iam",
+            tags: "attachment,user-record",
+          }}
           selectedFileId={selectedFile?.id ?? null}
           onSelect={setSelectedFile}
         />
@@ -286,7 +340,15 @@ export function LinkedAssetsManager({ items, tenantId, resourcePath, resourceMod
         </div>
       )}
       {items.map((item) => (
-        <LinkedAssetCard key={item.link.id} item={item} tenantId={tenantId} resourcePath={resourcePath} />
+        <LinkedAssetCard
+          key={item.link.id}
+          item={item}
+          tenantId={tenantId}
+          resourcePath={resourcePath}
+          resourceModule={resourceModule}
+          resourceType={resourceType}
+          resourceId={resourceId}
+        />
       ))}
     </div>
   );

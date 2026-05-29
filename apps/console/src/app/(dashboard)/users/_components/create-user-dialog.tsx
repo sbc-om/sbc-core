@@ -3,27 +3,28 @@
 import { useRef, useState, useTransition } from "react";
 import { createConsoleUserAction } from "@/actions/users";
 import { FilePickerDialog } from "@/components/documents/file-picker-dialog";
+import { useToast } from "@/components/system-feedback";
 import type { FileManagerItem } from "@/components/documents/types";
 
 export function CreateUserDialog() {
   const [open, setOpen]           = useState(false);
-  const [error, setError]         = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [avatarFile, setAvatarFile] = useState<FileManagerItem | null>(null);
   const [avatarVisibility, setAvatarVisibility] = useState<"internal" | "tenant" | "public">("internal");
   const formRef = useRef<HTMLFormElement>(null);
+  const toast = useToast();
 
   function handleSubmit(formData: FormData) {
-    setError(null);
     startTransition(async () => {
       const result = await createConsoleUserAction(formData);
       if (result?.error) {
-        setError(result.error);
+        toast.error("User creation failed", result.error);
       } else {
         formRef.current?.reset();
         setAvatarFile(null);
         setAvatarVisibility("internal");
         setOpen(false);
+        toast.success("User created", "The new user is now available in the directory.");
       }
     });
   }
@@ -90,6 +91,13 @@ export function CreateUserDialog() {
                     buttonLabel={avatarFile ? "Replace avatar" : "Choose avatar"}
                     title="Choose user avatar"
                     description="Pick an image from the global file manager or upload one inline for this user profile."
+                    accept="image/*"
+                    initialFolder="users/avatars"
+                    uploadDefaults={{
+                      folder: "users/avatars",
+                      moduleName: "iam",
+                      tags: "avatar,user-profile",
+                    }}
                     selectedFileId={avatarFile?.id ?? null}
                     onSelect={setAvatarFile}
                   />
@@ -131,9 +139,6 @@ export function CreateUserDialog() {
                   </div>
                 )}
               </div>
-
-              {error && <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>}
-
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"

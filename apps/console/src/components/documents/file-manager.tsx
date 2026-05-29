@@ -28,6 +28,7 @@ import {
   type FileManagerItem,
   type FileManagerStats,
 } from "./types";
+import { useConfirm, useToast } from "@/components/system-feedback";
 
 interface Props {
   initialFiles: FileManagerItem[];
@@ -58,9 +59,10 @@ export function FileManager({ initialFiles, initialStats, canUpload, canDelete }
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [dragging, setDragging] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [previewFile, setPreviewFile] = useState<FileManagerItem | null>(null);
   const deferredQuery = useDeferredValue(query);
+  const confirm = useConfirm();
+  const toast = useToast();
 
   const folders = useMemo(() => {
     return ["all", ...Array.from(new Set(files.map((file) => file.folder))).sort()];
@@ -68,7 +70,6 @@ export function FileManager({ initialFiles, initialStats, canUpload, canDelete }
 
   async function refresh(nextQuery = deferredQuery, nextFolder = activeFolder) {
     setLoading(true);
-    setError(null);
 
     try {
       const params = new URLSearchParams();
@@ -87,7 +88,7 @@ export function FileManager({ initialFiles, initialStats, canUpload, canDelete }
         setStats(payload.stats);
       });
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "Unable to load files");
+      toast.error("Catalog refresh failed", requestError instanceof Error ? requestError.message : "Unable to load files");
     } finally {
       setLoading(false);
     }
@@ -119,12 +120,11 @@ export function FileManager({ initialFiles, initialStats, canUpload, canDelete }
 
   async function upload() {
     if (!selectedFiles.length) {
-      setError("Choose at least one file to upload.");
+      toast.info("No files selected", "Choose at least one file to upload.");
       return;
     }
 
     setUploading(true);
-    setError(null);
 
     try {
       const body = new FormData();
@@ -148,18 +148,22 @@ export function FileManager({ initialFiles, initialStats, canUpload, canDelete }
       }
 
       await refresh(query, activeFolder);
+      toast.success("Files uploaded", "Your files were added to the catalog.");
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "Unable to upload files");
+      toast.error("Upload failed", requestError instanceof Error ? requestError.message : "Unable to upload files");
     } finally {
       setUploading(false);
     }
   }
 
   async function remove(id: string) {
-    const confirmed = window.confirm("Delete this file from the system file manager?");
-    if (!confirmed) return;
-
-    setError(null);
+    const accepted = await confirm({
+      title: "Delete file?",
+      description: "This removes the file from storage and retires its metadata from the system file manager.",
+      confirmLabel: "Delete file",
+      tone: "danger",
+    });
+    if (!accepted) return;
 
     try {
       const response = await fetch(`/api/files/${id}`, { method: "DELETE" });
@@ -170,8 +174,9 @@ export function FileManager({ initialFiles, initialStats, canUpload, canDelete }
       }
 
       await refresh(query, activeFolder);
+      toast.success("File deleted", "The file was removed from the system.");
     } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "Unable to delete file");
+      toast.error("Delete failed", requestError instanceof Error ? requestError.message : "Unable to delete file");
     }
   }
 
@@ -365,13 +370,6 @@ export function FileManager({ initialFiles, initialStats, canUpload, canDelete }
               </select>
             </div>
           </div>
-
-          {error && (
-            <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-              {error}
-            </div>
-          )}
-
           <div className="mt-5 space-y-3">
             {loading ? (
               <div className="rounded-2xl border border-border bg-slate-50 p-10 text-center text-sm text-slate-500">Refreshing catalog...</div>

@@ -2,22 +2,23 @@
 
 import { useRef, useState, useTransition } from "react";
 import { createRoleAction } from "@sbc/module-iam/actions";
+import { useToast } from "@/components/system-feedback";
 
 export function CreateRoleDialog() {
   const [open, setOpen]            = useState(false);
-  const [error, setError]          = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
+  const toast = useToast();
 
   function handleSubmit(formData: FormData) {
-    setError(null);
     startTransition(async () => {
       const result = await createRoleAction(formData);
       if (result?.error) {
-        setError(result.error);
+        toast.error("Role creation failed", result.error);
       } else {
         formRef.current?.reset();
         setOpen(false);
+        toast.success("Role created", "The new role is ready to be assigned.");
       }
     });
   }
@@ -57,9 +58,6 @@ export function CreateRoleDialog() {
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
-
-              {error && <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>}
-
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"

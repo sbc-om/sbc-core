@@ -2,10 +2,12 @@
 
 import { useState, useTransition } from "react";
 import { FilePickerDialog } from "@/components/documents/file-picker-dialog";
+import { buildDocumentUrl, extractDocumentId } from "@/lib/documents";
 import type { FileManagerItem } from "@/components/documents/types";
 
 interface Props {
   user: {
+    id: string;
     name: string;
     email: string;
     avatarUrl: string | null;
@@ -18,6 +20,7 @@ export function ProfileForm({ user, initialAvatar, action }: Props) {
   const [avatarFile, setAvatarFile] = useState<FileManagerItem | null>(initialAvatar);
   const [avatarVisibility, setAvatarVisibility] = useState<"internal" | "tenant" | "public">("internal");
   const [pending, startTransition] = useTransition();
+  const existingAvatarDocumentId = extractDocumentId(user.avatarUrl);
 
   function submit(formData: FormData) {
     startTransition(async () => {
@@ -70,6 +73,13 @@ export function ProfileForm({ user, initialAvatar, action }: Props) {
             buttonLabel={avatarFile ? "Replace avatar" : "Choose avatar"}
             title="Choose user avatar"
             description="Select a file from the global file manager or upload one inline, then link it to this user profile."
+            accept="image/*"
+            initialFolder="users/avatars"
+            uploadDefaults={{
+              folder: "users/avatars",
+              moduleName: "iam",
+              tags: "avatar,user-profile",
+            }}
             selectedFileId={avatarFile?.id ?? null}
             onSelect={setAvatarFile}
           />
@@ -79,7 +89,16 @@ export function ProfileForm({ user, initialAvatar, action }: Props) {
           <div className="mt-4 space-y-3 rounded-lg border border-border bg-background px-3 py-3">
             <div className="flex items-center gap-3">
               <img
-                src={avatarFile ? `/api/files/${avatarFile.id}` : user.avatarUrl ?? ""}
+                src={avatarFile
+                  ? `/api/files/${avatarFile.id}`
+                  : existingAvatarDocumentId
+                    ? buildDocumentUrl(existingAvatarDocumentId, {
+                        resourceModule: "iam",
+                        resourceType: "user",
+                        resourceId: user.id,
+                        fieldName: "avatar",
+                      })
+                    : user.avatarUrl ?? ""}
                 alt={avatarFile?.title ?? user.name}
                 className="h-12 w-12 rounded-full object-cover"
               />
