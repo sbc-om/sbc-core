@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import React from "react";
 import {
   HiChevronDown,
   HiChevronRight,
@@ -164,14 +164,27 @@ export function Sidebar({ menus, appName = "SBC", pathname, LinkComponent, class
         <ul className="space-y-0.5">
           {menus
             .sort((a, b) => a.order - b.order)
-            .map((item) => (
-              <SidebarItem
-                key={item.key}
-                item={item}
-                pathname={pathname}
-                LinkComponent={LinkComponent}
-              />
-            ))}
+            .map((item, index, sorted) => {
+              // Render a visual separator before the Administration group (order >= 90)
+              const prevItem = sorted[index - 1];
+              const isAdminBoundary =
+                item.order >= 90 &&
+                prevItem !== undefined &&
+                prevItem.order < 90;
+
+              return (
+                <React.Fragment key={item.key}>
+                  {isAdminBoundary && (
+                    <li role="separator" className="mx-2 my-2 h-px bg-sidebar-border/60" />
+                  )}
+                  <SidebarItem
+                    item={item}
+                    pathname={pathname}
+                    LinkComponent={LinkComponent}
+                  />
+                </React.Fragment>
+              );
+            })}
         </ul>
       </nav>
     </aside>
