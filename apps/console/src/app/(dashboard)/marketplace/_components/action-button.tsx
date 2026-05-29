@@ -52,7 +52,7 @@ export function ActionButton({ name, title, status, pricing, installable }: Prop
 
   if (status === "core") {
     return (
-      <span className={`${base} border-slate-200 bg-slate-100 text-slate-500 cursor-default`}>
+      <span className={`${base} cursor-default border-border bg-muted text-muted-foreground`}>
         <HiMiniCpuChip className="h-3.5 w-3.5" />
         Core
       </span>
@@ -75,8 +75,8 @@ export function ActionButton({ name, title, status, pricing, installable }: Prop
 
   if (status === "in_progress") {
     return (
-      <span className={`${base} border-blue-200 bg-blue-50 text-blue-600 cursor-default`}>
-        <span className="h-3 w-3 animate-spin rounded-full border-2 border-blue-300 border-t-blue-600" />
+      <span className={`${base} cursor-default border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-400/20 dark:bg-sky-500/10 dark:text-sky-300`}>
+        <span className="h-3 w-3 animate-spin rounded-full border-2 border-sky-300 border-t-sky-600 dark:border-sky-300/30 dark:border-t-sky-300" />
         Processing
       </span>
     );

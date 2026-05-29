@@ -122,7 +122,7 @@ export function MarketplaceClient({ entries, stats }: Props) {
                     "ml-0.5 rounded border px-1.5 py-0 text-[10px] font-semibold tabular-nums",
                     isActive
                       ? "border-white/30 bg-white/20 text-white"
-                      : "border-emerald-200 bg-emerald-50 text-emerald-700",
+                      : "border-border bg-muted text-foreground",
                   ].join(" ")}>
                     {count}
                   </span>
@@ -135,8 +135,8 @@ export function MarketplaceClient({ entries, stats }: Props) {
         {/* Result summary */}
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>
-            {stats.installed > 0 && <><span className="font-medium text-emerald-600">{stats.installed}</span> installed · </>}
-            {stats.available > 0  && <><span className="font-medium text-blue-600">{stats.available}</span> available · </>}
+            {stats.installed > 0 && <><span className="font-medium text-foreground">{stats.installed}</span> installed · </>}
+            {stats.available > 0  && <><span className="font-medium text-foreground">{stats.available}</span> available · </>}
             <span className="font-medium">{stats.comingSoon}</span> coming soon
           </span>
           {query && (
@@ -171,7 +171,7 @@ export function MarketplaceClient({ entries, stats }: Props) {
           <SectionHeader
             label="Installed"
             count={installed.length}
-            countClass="border-emerald-200 bg-emerald-50 text-emerald-700"
+            countClass="border-border bg-muted text-foreground"
           />
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {installed.map((e) => (
@@ -187,7 +187,7 @@ export function MarketplaceClient({ entries, stats }: Props) {
           <SectionHeader
             label="Available"
             count={available.length}
-            countClass="border-blue-200 bg-blue-50 text-blue-700"
+            countClass="border-border bg-muted text-foreground"
           />
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {available.map((e) => (

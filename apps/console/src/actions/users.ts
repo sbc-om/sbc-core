@@ -84,6 +84,8 @@ export async function createConsoleUserAction(formData: FormData) {
     }
 
     revalidatePath("/users");
+    revalidatePath("/settings/profile");
+    revalidatePath("/settings/security");
     return { success: true };
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Failed to create user";
@@ -124,6 +126,8 @@ export async function updateConsoleUserAction(id: string, formData: FormData) {
 
     revalidatePath("/users");
     revalidatePath(`/users/${id}`);
+    revalidatePath("/settings/profile");
+    revalidatePath("/settings/security");
     return { success: true };
   } catch (err) {
     return { error: err instanceof Error ? err.message : "Failed to update user" };

@@ -37,9 +37,9 @@ const MODULE_ICONS: Record<string, ComponentType<{ className?: string }>> = {
 
 // ── Pricing config ────────────────────────────────────────────────────────────
 const PRICING: Record<Pricing, { label: string; fg: string; bg: string; border: string }> = {
-  free:       { label: "Free",       fg: "text-emerald-700", bg: "bg-emerald-50",  border: "border-emerald-200" },
-  pro:        { label: "Pro",        fg: "text-blue-700",    bg: "bg-blue-50",     border: "border-blue-200"    },
-  enterprise: { label: "Enterprise", fg: "text-violet-700",  bg: "bg-violet-50",   border: "border-violet-200"  },
+  free:       { label: "Free",       fg: "text-foreground",      bg: "bg-muted/70",         border: "border-border" },
+  pro:        { label: "Pro",        fg: "text-sky-700 dark:text-sky-300",    bg: "bg-sky-50 dark:bg-sky-500/10",     border: "border-sky-200 dark:border-sky-400/20" },
+  enterprise: { label: "Enterprise", fg: "text-violet-700 dark:text-violet-300",  bg: "bg-violet-50 dark:bg-violet-500/10",   border: "border-violet-200 dark:border-violet-400/20" },
 };
 
 // ── Status config ─────────────────────────────────────────────────────────────
@@ -50,10 +50,10 @@ const STATUS: Record<CatalogStatus, {
   border: string;
   icon:   ComponentType<{ className?: string }>;
 } | null> = {
-  installed:   { label: "Installed",   fg: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200", icon: HiMiniCheckCircle   },
-  core:        { label: "Core",        fg: "text-slate-600",   bg: "bg-slate-100",  border: "border-slate-200",   icon: HiMiniCpuChip       },
-  in_progress: { label: "Installing",  fg: "text-blue-700",    bg: "bg-blue-50",    border: "border-blue-200",    icon: HiMiniArrowPath      },
-  error:       { label: "Error",       fg: "text-rose-700",    bg: "bg-rose-50",    border: "border-rose-200",    icon: HiMiniExclamationCircle },
+  installed:   { label: "Installed",   fg: "text-foreground", bg: "bg-muted/70", border: "border-border", icon: HiMiniCheckCircle   },
+  core:        { label: "Core",        fg: "text-muted-foreground",   bg: "bg-muted/70",  border: "border-border",   icon: HiMiniCpuChip       },
+  in_progress: { label: "Installing",  fg: "text-sky-700 dark:text-sky-300",    bg: "bg-sky-50 dark:bg-sky-500/10",    border: "border-sky-200 dark:border-sky-400/20",    icon: HiMiniArrowPath      },
+  error:       { label: "Error",       fg: "text-rose-700 dark:text-rose-300",    bg: "bg-rose-50 dark:bg-rose-500/10",    border: "border-rose-200 dark:border-rose-400/20",    icon: HiMiniExclamationCircle },
   available:   null,
   coming_soon: null,
 };
@@ -74,10 +74,10 @@ export function ModuleCard({ module: mod, status, installedVersion }: Props) {
   return (
     <div
       className={[
-        "group flex flex-col overflow-hidden rounded-lg border bg-background transition-all duration-150",
-        isActive           ? "border-emerald-200 shadow-sm"                       : "",
-        status === "error" ? "border-rose-200"                                    : "",
-        !isActive && status !== "error" ? "border-border hover:border-slate-300 hover:shadow-sm" : "",
+        "group flex flex-col overflow-hidden rounded-lg border border-border bg-background transition-all duration-150",
+        isActive ? "shadow-sm" : "",
+        status === "error" ? "border-rose-200/80 dark:border-rose-400/20" : "",
+        !isActive && status !== "error" ? "hover:border-foreground/15 hover:shadow-sm" : "",
         isComingSoon       ? "opacity-75"                                          : "",
       ].filter(Boolean).join(" ")}
     >
@@ -91,8 +91,9 @@ export function ModuleCard({ module: mod, status, installedVersion }: Props) {
           <div
             className={[
               "flex h-10 w-10 shrink-0 items-center justify-center rounded-md border",
-              isActive ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                       : "border-border bg-muted text-muted-foreground group-hover:border-slate-300",
+              isActive
+                ? "border-border bg-muted/70 text-foreground"
+                : "border-border bg-muted text-muted-foreground group-hover:border-foreground/15",
             ].join(" ")}
           >
             <Icon className="h-5 w-5" />

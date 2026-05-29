@@ -136,7 +136,7 @@ function LinkedAssetCard({
             type="button"
             disabled={pending}
             onClick={remove}
-            className="inline-flex items-center gap-2 rounded-md border border-rose-200 px-3 py-2 text-xs font-medium text-rose-600 transition-colors hover:bg-rose-50 disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-md border border-rose-300/40 px-3 py-2 text-xs font-medium text-rose-600 transition-colors hover:bg-rose-500/10 dark:text-rose-400 disabled:opacity-50"
           >
             <HiMiniTrash className="h-4 w-4" />
             Unlink
@@ -239,11 +239,11 @@ function AddLinkedAssetCard({
   }
 
   return (
-    <div className="rounded-lg border border-dashed border-teal-200 bg-teal-50/40 p-4">
+    <div className="rounded-lg border border-dashed border-border bg-muted/20 p-4">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <p className="text-sm font-semibold text-slate-950">Add linked asset</p>
-          <p className="mt-1 text-sm text-slate-600">Select an existing file from the central library or upload one here and link it to this record.</p>
+          <p className="text-sm font-semibold text-foreground">Add linked asset</p>
+          <p className="mt-1 text-sm text-muted-foreground">Select an existing file from the central library or upload one here and link it to this record.</p>
         </div>
         <FilePickerDialog
           buttonLabel={selectedFile ? "Replace file" : "Choose file"}
@@ -260,7 +260,7 @@ function AddLinkedAssetCard({
       </div>
 
       {selectedFile && (
-        <div className="mt-4 flex items-center gap-3 rounded-lg border border-teal-100 bg-white px-3 py-3">
+        <div className="mt-4 flex items-center gap-3 rounded-lg border border-border bg-background px-3 py-3">
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium text-foreground">{selectedFile.title}</p>
             <p className="truncate text-xs text-muted-foreground">{selectedFile.originalName}</p>
@@ -314,7 +314,7 @@ function AddLinkedAssetCard({
           type="button"
           disabled={pending || !selectedFile}
           onClick={add}
-          className="rounded-md bg-slate-950 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800 disabled:opacity-50"
+          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
         >
           {pending ? "Linking..." : "Link asset"}
         </button>

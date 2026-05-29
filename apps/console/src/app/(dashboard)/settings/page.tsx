@@ -44,7 +44,7 @@ export default async function SettingsPage() {
       title: "Profile",
       group: "Account",
       icon: HiMiniUser,
-      href: user ? `/users/${user.id}` : "/users",
+      href: "/settings/profile",
       iconClassName: "text-blue-600",
       iconStyle: {
         "--settings-icon-bg-light": "oklch(0.97 0.02 249)",
@@ -58,7 +58,7 @@ export default async function SettingsPage() {
       title: "Security",
       group: "Account",
       icon: HiMiniLockClosed,
-      href: user ? `/users/${user.id}` : "/users",
+      href: "/settings/security",
       iconClassName: "text-rose-600",
       iconStyle: {
         "--settings-icon-bg-light": "oklch(0.97 0.025 18)",
@@ -101,7 +101,7 @@ export default async function SettingsPage() {
       title: "Sales",
       group: "Operations",
       icon: HiMiniUsers,
-      href: "/contacts",
+      href: "/settings/sales",
       iconClassName: "text-orange-600",
       iconStyle: {
         "--settings-icon-bg-light": "oklch(0.97 0.02 55)",
@@ -115,7 +115,7 @@ export default async function SettingsPage() {
       title: "HR",
       group: "Operations",
       icon: HiMiniUserGroup,
-      href: "/users",
+      href: "/settings/hr",
       iconClassName: "text-blue-500",
       iconStyle: {
         "--settings-icon-bg-light": "oklch(0.97 0.02 240)",
@@ -129,7 +129,7 @@ export default async function SettingsPage() {
       title: "Documents",
       group: "Operations",
       icon: HiMiniDocumentText,
-      href: "/files",
+      href: "/settings/documents",
       iconClassName: "text-fuchsia-600",
       iconStyle: {
         "--settings-icon-bg-light": "oklch(0.97 0.025 335)",
