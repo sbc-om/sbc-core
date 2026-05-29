@@ -14,8 +14,7 @@ interface Props {
   scopeFilter: string;
   currentPage: number;
   expandedModule: string | null;
-  widgetCategory: string;
-  widgetPage: number;
+  basePath: string;
 }
 
 const PAGE_SIZE = 3;
@@ -34,25 +33,22 @@ function formatValue(value: unknown) {
 }
 
 function buildHref(params: {
+  basePath: string;
   scopeFilter: string;
   page: number;
   expandedModule: string | null;
-  widgetCategory: string;
-  widgetPage: number;
 }) {
   const searchParams = new URLSearchParams();
 
   if (params.scopeFilter !== "all") searchParams.set("moduleScope", params.scopeFilter);
   if (params.page > 1) searchParams.set("modulePage", String(params.page));
   if (params.expandedModule) searchParams.set("moduleSection", params.expandedModule);
-  if (params.widgetCategory !== "all") searchParams.set("widgetCategory", params.widgetCategory);
-  if (params.widgetPage > 1) searchParams.set("widgetPage", String(params.widgetPage));
 
   const query = searchParams.toString();
-  return query.length > 0 ? `/settings?${query}` : "/settings";
+  return query.length > 0 ? `${params.basePath}?${query}` : params.basePath;
 }
 
-export function ModuleSettingsPanel({ rows, scopeFilter, currentPage, expandedModule, widgetCategory, widgetPage }: Props) {
+export function ModuleSettingsPanel({ rows, scopeFilter, currentPage, expandedModule, basePath }: Props) {
   const scopes = ["all", ...Array.from(new Set(rows.map((row) => row.scope)))];
   const groupedRows = Array.from(
     rows.reduce((acc, row) => {
@@ -93,11 +89,10 @@ export function ModuleSettingsPanel({ rows, scopeFilter, currentPage, expandedMo
             <Link
               key={scope}
               href={buildHref({
+                basePath,
                 scopeFilter: scope,
                 page: 1,
                 expandedModule: null,
-                widgetCategory,
-                widgetPage,
               })}
               className={scopeFilter === scope ? navButtonActiveClass : navButtonClass}
             >
@@ -152,11 +147,10 @@ export function ModuleSettingsPanel({ rows, scopeFilter, currentPage, expandedMo
 
                     <Link
                       href={buildHref({
+                        basePath,
                         scopeFilter,
                         page: safePage,
                         expandedModule: isExpanded ? null : group.moduleName,
-                        widgetCategory,
-                        widgetPage,
                       })}
                       className={isExpanded ? "inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-md bg-secondary px-3 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80" : navButtonClass}
                     >
@@ -201,11 +195,10 @@ export function ModuleSettingsPanel({ rows, scopeFilter, currentPage, expandedMo
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href={buildHref({
+              basePath,
               scopeFilter,
               page: Math.max(1, safePage - 1),
               expandedModule,
-              widgetCategory,
-              widgetPage,
             })}
             aria-disabled={safePage === 1}
             className={cn(
@@ -220,11 +213,10 @@ export function ModuleSettingsPanel({ rows, scopeFilter, currentPage, expandedMo
             <Link
               key={index}
               href={buildHref({
+                basePath,
                 scopeFilter,
                 page: index + 1,
                 expandedModule,
-                widgetCategory,
-                widgetPage,
               })}
               className={index + 1 === safePage ? navButtonActiveClass : navButtonClass}
             >
@@ -233,11 +225,10 @@ export function ModuleSettingsPanel({ rows, scopeFilter, currentPage, expandedMo
           ))}
           <Link
             href={buildHref({
+              basePath,
               scopeFilter,
               page: Math.min(totalPages, safePage + 1),
               expandedModule,
-              widgetCategory,
-              widgetPage,
             })}
             aria-disabled={safePage >= totalPages}
             className={cn(

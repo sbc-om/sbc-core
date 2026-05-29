@@ -3,6 +3,7 @@
 import { useTransition, useState } from "react";
 import { HiMiniChevronUpDown, HiBars3, HiArrowRightOnRectangle } from "react-icons/hi2";
 import { logoutAction } from "@/actions/auth";
+import { ThemeToggle } from "./theme-toggle";
 
 interface Props {
   user:          { name: string; email: string; isSuperAdmin: boolean };
@@ -26,23 +27,26 @@ export function UserHeader({ user, onMenuToggle }: Props) {
       </div>
 
       <div className="relative ml-auto">
-        <button
-          onClick={() => setOpen((p) => !p)}
-          className="flex items-center gap-2 rounded-md border border-border bg-background px-2.5 py-1.5 text-sm transition-colors hover:bg-muted"
-        >
-          <span className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-muted text-xs font-semibold text-foreground">
-            {user.name.charAt(0).toUpperCase()}
-          </span>
-          <span className="hidden max-w-[140px] truncate font-medium text-foreground sm:block">
-            {user.name}
-          </span>
-          {user.isSuperAdmin && (
-            <span className="hidden rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground sm:block">
-              Admin
+        <div className="flex items-center gap-2">
+          <ThemeToggle compact />
+          <button
+            onClick={() => setOpen((p) => !p)}
+            className="flex items-center gap-2 rounded-md border border-border bg-background px-2.5 py-1.5 text-sm transition-colors hover:bg-muted"
+          >
+            <span className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-muted text-xs font-semibold text-foreground">
+              {user.name.charAt(0).toUpperCase()}
             </span>
-          )}
-          <HiMiniChevronUpDown className="h-3.5 w-3.5 text-muted-foreground" />
-        </button>
+            <span className="hidden max-w-[140px] truncate font-medium text-foreground sm:block">
+              {user.name}
+            </span>
+            {user.isSuperAdmin && (
+              <span className="hidden rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground sm:block">
+                Admin
+              </span>
+            )}
+            <HiMiniChevronUpDown className="h-3.5 w-3.5 text-muted-foreground" />
+          </button>
+        </div>
 
         {open && (
           <>

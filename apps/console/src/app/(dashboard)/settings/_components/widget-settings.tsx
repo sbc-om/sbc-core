@@ -14,33 +14,26 @@ interface Props {
   initialConfig: BuiltinWidgetConfig[];
   activeCategory: string;
   currentPage: number;
-  moduleScope: string;
-  modulePage: number;
-  expandedModule: string | null;
+  basePath: string;
 }
 
 const PAGE_SIZE = 4;
 
 function buildHref(params: {
+  basePath: string;
   activeCategory: string;
   page: number;
-  moduleScope: string;
-  modulePage: number;
-  expandedModule: string | null;
 }) {
   const searchParams = new URLSearchParams();
 
-  if (params.moduleScope !== "all") searchParams.set("moduleScope", params.moduleScope);
-  if (params.modulePage > 1) searchParams.set("modulePage", String(params.modulePage));
-  if (params.expandedModule) searchParams.set("moduleSection", params.expandedModule);
   if (params.activeCategory !== "all") searchParams.set("widgetCategory", params.activeCategory);
   if (params.page > 1) searchParams.set("widgetPage", String(params.page));
 
   const query = searchParams.toString();
-  return query.length > 0 ? `/settings?${query}` : "/settings";
+  return query.length > 0 ? `${params.basePath}?${query}` : params.basePath;
 }
 
-export function WidgetSettings({ userId, tenantId, initialConfig, activeCategory, currentPage, moduleScope, modulePage, expandedModule }: Props) {
+export function WidgetSettings({ userId, tenantId, initialConfig, activeCategory, currentPage, basePath }: Props) {
   const toast = useToast();
 
   const buildState = (): BuiltinWidgetConfig[] => {
@@ -95,11 +88,9 @@ export function WidgetSettings({ userId, tenantId, initialConfig, activeCategory
               <Link
                 key={category}
                 href={buildHref({
+                  basePath,
                   activeCategory: category,
                   page: 1,
-                  moduleScope,
-                  modulePage,
-                  expandedModule,
                 })}
                 className={buttonVariants({
                   size: "sm",
@@ -188,11 +179,9 @@ export function WidgetSettings({ userId, tenantId, initialConfig, activeCategory
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href={buildHref({
+              basePath,
               activeCategory,
               page: Math.max(1, safePage - 1),
-              moduleScope,
-              modulePage,
-              expandedModule,
             })}
             aria-disabled={safePage === 1}
             className={cn(
@@ -207,11 +196,9 @@ export function WidgetSettings({ userId, tenantId, initialConfig, activeCategory
             <Link
               key={index}
               href={buildHref({
+                basePath,
                 activeCategory,
                 page: index + 1,
-                moduleScope,
-                modulePage,
-                expandedModule,
               })}
               className={buttonVariants({
                 size: "sm",
@@ -223,11 +210,9 @@ export function WidgetSettings({ userId, tenantId, initialConfig, activeCategory
           ))}
           <Link
             href={buildHref({
+              basePath,
               activeCategory,
               page: Math.min(totalPages, safePage + 1),
-              moduleScope,
-              modulePage,
-              expandedModule,
             })}
             aria-disabled={safePage >= totalPages}
             className={cn(
