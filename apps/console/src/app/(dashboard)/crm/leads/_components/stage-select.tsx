@@ -25,12 +25,29 @@ export function StageBadge({ stage }: { stage: string }) {
   );
 }
 
-export function StageSelect({ id, currentStage }: { id: string; currentStage: string }) {
+export function StageSelect({
+  id,
+  currentStage,
+  stages,
+  onStageChange,
+}: {
+  id: string;
+  currentStage: string;
+  stages?: string[];
+  onStageChange?: (stage: string) => void;
+}) {
   const [pending, startTransition] = useTransition();
   const toast = useToast();
+  const stageOptions = stages?.length ? stages : [...STAGES];
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const stage = e.target.value;
+
+    if (onStageChange) {
+      onStageChange(stage);
+      return;
+    }
+
     startTransition(async () => {
       const result = await updateLeadStageAction(id, stage);
       if (result.error) toast.error("Failed to update stage", result.error);
@@ -44,7 +61,7 @@ export function StageSelect({ id, currentStage }: { id: string; currentStage: st
       onChange={handleChange}
       className="rounded-md border border-input bg-background px-2 py-1 text-xs font-medium outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20 disabled:opacity-60 cursor-pointer"
     >
-      {STAGES.map((s) => (
+      {stageOptions.map((s) => (
         <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
       ))}
     </select>

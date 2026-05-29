@@ -5,7 +5,15 @@ import { HiMiniTrash } from "react-icons/hi2";
 import { deleteLeadAction } from "@/actions/crm";
 import { useToast, useConfirm } from "@/components/system-feedback";
 
-export function DeleteLeadButton({ id, title }: { id: string; title: string }) {
+export function DeleteLeadButton({
+  id,
+  title,
+  onDeleted,
+}: {
+  id: string;
+  title: string;
+  onDeleted?: () => void;
+}) {
   const [pending, startTransition] = useTransition();
   const toast   = useToast();
   const confirm = useConfirm();
@@ -21,7 +29,10 @@ export function DeleteLeadButton({ id, title }: { id: string; title: string }) {
     startTransition(async () => {
       const result = await deleteLeadAction(id);
       if (result.error) toast.error("Delete failed", result.error);
-      else              toast.success("Lead deleted", `"${title}" has been removed.`);
+      else {
+        onDeleted?.();
+        toast.success("Lead deleted", `"${title}" has been removed.`);
+      }
     });
   }
 
