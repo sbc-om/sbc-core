@@ -19,12 +19,12 @@ import {
 import { useToast } from "@/components/system-feedback";
 
 interface Props {
-  buttonLabel?:   string;
-  title?:         string;
-  description?:   string;
+  buttonLabel?:    string;
+  title?:          string;
+  description?:    string;
   selectedFileId?: string | null;
-  accept?:        string;
-  initialFolder?: string;
+  accept?:         string;
+  initialFolder?:  string;
   uploadDefaults?: { folder?: string; moduleName?: string; tags?: string };
   onSelect(file: FileManagerItem): void;
 }
@@ -63,6 +63,7 @@ export function FilePickerDialog({
   const [folder, setFolder]   = useState(initialFolder?.trim() || "all");
   const [loading, setLoading] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [mobileTab, setMobileTab]   = useState<"browse" | "upload">("browse");
 
   const [uploadFile, setUploadFile]           = useState<File | null>(null);
   const [uploadTitle, setUploadTitle]         = useState("");
@@ -142,6 +143,144 @@ export function FilePickerDialog({
     });
   }
 
+  /* ── shared upload form panel (used on both mobile & desktop) ── */
+  const UploadPanel = (
+    <div className="space-y-3">
+      <div>
+        <label className="mb-1 block text-xs font-medium text-muted-foreground">File</label>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={accept}
+          onChange={(e) => setUploadFile(e.target.files?.[0] ?? null)}
+          className="block w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-xs text-foreground file:mr-2 file:rounded file:border-0 file:bg-muted file:px-2 file:py-1 file:text-xs file:font-medium file:text-foreground"
+        />
+        {uploadFile && (
+          <p className="mt-1 truncate text-xs text-muted-foreground">
+            {uploadFile.name} · {formatFileSize(uploadFile.size)}
+          </p>
+        )}
+      </div>
+      {[
+        { label: "Title",  value: uploadTitle,      setter: setUploadTitle,      placeholder: "Display title" },
+        { label: "Folder", value: uploadFolder,     setter: setUploadFolder,     placeholder: "general" },
+        { label: "Module", value: uploadModuleName, setter: setUploadModuleName, placeholder: "crm" },
+        { label: "Tags",   value: uploadTags,       setter: setUploadTags,       placeholder: "avatar, profile" },
+      ].map(({ label, value, setter, placeholder }) => (
+        <div key={label}>
+          <label className="mb-1 block text-xs font-medium text-muted-foreground">{label}</label>
+          <input
+            value={value}
+            onChange={(e) => setter(e.target.value)}
+            placeholder={placeholder}
+            className="w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-xs outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
+          />
+        </div>
+      ))}
+      <div className="flex gap-2 pt-1">
+        <button
+          type="button"
+          onClick={resetUpload}
+          className="flex-1 rounded-md border border-input px-2.5 py-1.5 text-xs font-medium transition hover:bg-muted"
+        >
+          Reset
+        </button>
+        <button
+          type="button"
+          disabled={uploadPending || !uploadFile}
+          onClick={handleUpload}
+          className="flex flex-1 items-center justify-center gap-1 rounded-md bg-primary px-2.5 py-1.5 text-xs font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
+        >
+          <HiMiniCloudArrowUp className="h-3.5 w-3.5" />
+          {uploadPending ? "Uploading…" : "Upload & Select"}
+        </button>
+      </div>
+    </div>
+  );
+
+  /* ── shared file list panel ── */
+  const BrowsePanel = (
+    <>
+      {/* Search + folder filter */}
+      <div className="flex shrink-0 gap-2 border-b border-border px-4 py-3">
+        <div className="relative flex-1">
+          <HiMiniMagnifyingGlass className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search files…"
+            className="w-full rounded-md border border-input bg-background py-2 pl-9 pr-3 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
+          />
+        </div>
+        <select
+          value={folder}
+          onChange={(e) => setFolder(e.target.value)}
+          className="rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
+        >
+          {folders.map((f) => (
+            <option key={f} value={f}>{f === "all" ? "All folders" : f}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* File grid */}
+      <div className="flex-1 overflow-y-auto p-4">
+        {loading ? (
+          <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">Loading…</div>
+        ) : visibleFiles.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
+            <HiMiniFolderOpen className="h-8 w-8 text-muted-foreground/40" />
+            <p className="text-sm font-medium text-foreground">No files found</p>
+            <p className="text-xs text-muted-foreground">Switch to Upload tab to add a new file.</p>
+          </div>
+        ) : (
+          <div className="grid gap-2 sm:grid-cols-2">
+            {visibleFiles.map((file) => {
+              const previewKind = getFilePreviewKind(file.mimeType);
+              const isSelected  = file.id === selectedFileId;
+              return (
+                <button
+                  key={file.id}
+                  type="button"
+                  onClick={() => { onSelect(file); setOpen(false); }}
+                  className={`flex items-start gap-3 rounded-lg border p-3 text-left transition hover:border-primary/50 hover:bg-muted/30 ${
+                    isSelected ? "border-primary bg-primary/5" : "border-border"
+                  }`}
+                >
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-muted">
+                    {previewKind === "image" ? (
+                      <img src={`/api/files/${file.id}`} alt={file.title} className="h-full w-full object-cover" />
+                    ) : (
+                      <FileIcon mimeType={file.mimeType} />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <p className="truncate text-sm font-medium text-foreground">{file.title}</p>
+                      {isSelected && <HiMiniCheckCircle className="h-4 w-4 shrink-0 text-primary" />}
+                    </div>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {file.folder} · {formatFileSize(file.sizeBytes)}
+                    </p>
+                  </div>
+                  <a
+                    href={`/api/files/${file.id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                  >
+                    <HiMiniArrowTopRightOnSquare className="h-3.5 w-3.5" />
+                  </a>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </>
+  );
+
   return (
     <>
       <button
@@ -163,6 +302,7 @@ export function FilePickerDialog({
           />
 
           <div className="relative z-10 flex w-full max-h-[92vh] flex-col overflow-hidden rounded-t-lg border border-border bg-background shadow-xl sm:max-w-4xl sm:rounded-lg">
+
             {/* Header */}
             <div className="flex shrink-0 items-center justify-between gap-4 border-b border-border px-6 py-4">
               <div>
@@ -179,136 +319,51 @@ export function FilePickerDialog({
               </button>
             </div>
 
-            {/* Search bar */}
-            <div className="flex shrink-0 gap-2 border-b border-border px-6 py-3">
-              <div className="relative flex-1">
-                <HiMiniMagnifyingGlass className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search files…"
-                  className="w-full rounded-md border border-input bg-background py-2 pl-9 pr-3 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
-                />
-              </div>
-              <select
-                value={folder}
-                onChange={(e) => setFolder(e.target.value)}
-                className="rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
-              >
-                {folders.map((f) => (
-                  <option key={f} value={f}>{f === "all" ? "All folders" : f}</option>
-                ))}
-              </select>
+            {/* Mobile tabs — visible only on small screens */}
+            <div className="flex shrink-0 border-b border-border sm:hidden">
+              {(["browse", "upload"] as const).map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setMobileTab(tab)}
+                  className={`flex-1 py-2.5 text-sm font-medium capitalize transition-colors ${
+                    mobileTab === tab
+                      ? "border-b-2 border-primary text-primary"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {tab === "browse" ? "Browse" : "Upload"}
+                </button>
+              ))}
             </div>
 
-            {/* Body — two-column */}
-            <div className="flex flex-1 overflow-hidden">
-              {/* File list */}
-              <div className="flex-1 overflow-y-auto p-4">
-                {loading ? (
-                  <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">Loading…</div>
-                ) : visibleFiles.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
-                    <HiMiniFolderOpen className="h-8 w-8 text-muted-foreground/40" />
-                    <p className="text-sm font-medium text-foreground">No files found</p>
-                    <p className="text-xs text-muted-foreground">Upload a file on the right or change your search.</p>
-                  </div>
-                ) : (
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    {visibleFiles.map((file) => {
-                      const previewKind = getFilePreviewKind(file.mimeType);
-                      const isSelected  = file.id === selectedFileId;
-                      return (
-                        <button
-                          key={file.id}
-                          type="button"
-                          onClick={() => { onSelect(file); setOpen(false); }}
-                          className={`flex items-start gap-3 rounded-lg border p-3 text-left transition hover:border-primary/50 hover:bg-muted/30 ${
-                            isSelected ? "border-primary bg-primary/5" : "border-border"
-                          }`}
-                        >
-                          <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-muted">
-                            {previewKind === "image" ? (
-                              <img src={`/api/files/${file.id}`} alt={file.title} className="h-full w-full object-cover" />
-                            ) : (
-                              <FileIcon mimeType={file.mimeType} />
-                            )}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-1.5">
-                              <p className="truncate text-sm font-medium text-foreground">{file.title}</p>
-                              {isSelected && <HiMiniCheckCircle className="h-4 w-4 shrink-0 text-primary" />}
-                            </div>
-                            <p className="truncate text-xs text-muted-foreground">{file.folder} · {formatFileSize(file.sizeBytes)}</p>
-                          </div>
-                          <a
-                            href={`/api/files/${file.id}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground transition hover:bg-muted hover:text-foreground"
-                          >
-                            <HiMiniArrowTopRightOnSquare className="h-3.5 w-3.5" />
-                          </a>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* Upload sidebar */}
-              <div className="hidden w-64 shrink-0 overflow-y-auto border-l border-border bg-muted/20 p-4 sm:block">
-                <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Upload New</h3>
-                <div className="space-y-3">
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-muted-foreground">File</label>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept={accept}
-                      onChange={(e) => setUploadFile(e.target.files?.[0] ?? null)}
-                      className="block w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-xs text-foreground file:mr-2 file:rounded file:border-0 file:bg-muted file:px-2 file:py-1 file:text-xs file:font-medium file:text-foreground"
-                    />
-                    {uploadFile && (
-                      <p className="mt-1 truncate text-xs text-muted-foreground">{uploadFile.name} · {formatFileSize(uploadFile.size)}</p>
-                    )}
-                  </div>
-                  {[
-                    { label: "Title",  value: uploadTitle,      setter: setUploadTitle,      placeholder: "Display title" },
-                    { label: "Folder", value: uploadFolder,     setter: setUploadFolder,     placeholder: "general" },
-                    { label: "Module", value: uploadModuleName, setter: setUploadModuleName, placeholder: "crm" },
-                    { label: "Tags",   value: uploadTags,       setter: setUploadTags,       placeholder: "avatar, profile" },
-                  ].map(({ label, value, setter, placeholder }) => (
-                    <div key={label}>
-                      <label className="mb-1 block text-xs font-medium text-muted-foreground">{label}</label>
-                      <input
-                        value={value}
-                        onChange={(e) => setter(e.target.value)}
-                        placeholder={placeholder}
-                        className="w-full rounded-md border border-input bg-background px-2.5 py-1.5 text-xs outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
-                      />
-                    </div>
-                  ))}
-                  <div className="flex gap-2 pt-1">
-                    <button
-                      type="button"
-                      onClick={resetUpload}
-                      className="flex-1 rounded-md border border-input px-2.5 py-1.5 text-xs font-medium transition hover:bg-muted"
-                    >
-                      Reset
-                    </button>
-                    <button
-                      type="button"
-                      disabled={uploadPending || !uploadFile}
-                      onClick={handleUpload}
-                      className="flex flex-1 items-center justify-center gap-1 rounded-md bg-primary px-2.5 py-1.5 text-xs font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
-                    >
-                      <HiMiniCloudArrowUp className="h-3.5 w-3.5" />
-                      {uploadPending ? "Uploading…" : "Upload"}
-                    </button>
-                  </div>
+            {/* Body */}
+            {/* Mobile: single panel based on active tab */}
+            <div className="flex flex-1 overflow-hidden sm:hidden">
+              {mobileTab === "browse" ? (
+                <div className="flex flex-1 flex-col overflow-hidden">
+                  {BrowsePanel}
                 </div>
+              ) : (
+                <div className="flex-1 overflow-y-auto p-4">
+                  <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Upload New File
+                  </h3>
+                  {UploadPanel}
+                </div>
+              )}
+            </div>
+
+            {/* Desktop: two-column layout */}
+            <div className="hidden flex-1 overflow-hidden sm:flex">
+              <div className="flex flex-1 flex-col overflow-hidden">
+                {BrowsePanel}
+              </div>
+              <div className="w-64 shrink-0 overflow-y-auto border-l border-border bg-muted/20 p-4">
+                <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Upload New
+                </h3>
+                {UploadPanel}
               </div>
             </div>
 
