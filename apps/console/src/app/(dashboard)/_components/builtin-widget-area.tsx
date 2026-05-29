@@ -211,14 +211,16 @@ export function BuiltinWidgetArea({
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    setConfig((prev) => {
-      const ids  = prev.map((c) => c.id);
-      const from = ids.indexOf(active.id as string);
-      const to   = ids.indexOf(over.id   as string);
-      const next = arrayMove(prev, from, to).map((c, i) => ({ ...c, order: i }));
-      void persist(next);
-      return next;
-    });
+
+    const ids  = config.map((c) => c.id);
+    const from = ids.indexOf(active.id as string);
+    const to   = ids.indexOf(over.id as string);
+
+    if (from === -1 || to === -1) return;
+
+    const next = arrayMove(config, from, to).map((c, i) => ({ ...c, order: i }));
+    setConfig(next);
+    void persist(next);
   }
 
   const visible = config.filter((c) => c.enabled);
