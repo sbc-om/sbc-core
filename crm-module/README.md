@@ -2,13 +2,15 @@
 
 Standalone CRM module — customers, leads, and sales pipelines.
 
+This release ships the leads workspace as a pipeline-driven kanban board with draggable cards.
+
 ## Package Format
 
 This module follows the SBC Core external module specification.
 A valid `.zip` package must contain:
 
 ```
-crm-1.0.0.zip
+crm-1.1.0.zip
 ├── manifest.json       ← required: module identity, permissions, menus
 └── migrations/
     ├── 0001_*.sql      ← ordered SQL migrations (run on install)
@@ -28,7 +30,7 @@ npm install
 
 ```bash
 node scripts/build-zip.mjs
-# → dist/crm-1.0.0.zip
+# → dist/crm-1.1.0.zip
 ```
 
 ### 3. Install in SBC Core
@@ -46,6 +48,13 @@ node scripts/build-zip.mjs
 | `crm_leads` | Sales opportunities |
 | `crm_pipelines` | Named pipeline definitions |
 | `crm_pipeline_stages` | Stages within a pipeline |
+
+## Leads Workspace
+
+- `/crm/leads` is presented as a kanban board instead of a table.
+- Columns follow the default pipeline stage order when available.
+- Lead cards can be dragged between stages to update status quickly.
+- Each column scrolls independently so the page layout stays fixed.
 
 ## Permissions Registered
 
@@ -67,7 +76,7 @@ node scripts/build-zip.mjs
 ```
 CRM
 ├── Customers    /crm/customers
-├── Leads        /crm/leads
+├── Leads        /crm/leads    (kanban)
 └── Pipelines    /crm/pipelines
 ```
 

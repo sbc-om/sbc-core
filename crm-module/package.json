@@ -1,8 +1,8 @@
 {
   "name": "crm-module",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
-  "description": "Standalone CRM module for SBC Core — installable via zip",
+  "description": "Standalone CRM module for SBC Core with kanban leads and pipeline management",
   "type": "module",
   "scripts": {
     "build:zip": "node scripts/build-zip.mjs",
