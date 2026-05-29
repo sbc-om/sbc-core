@@ -44,6 +44,8 @@ interface SettingsCard {
   icon: IconType;
   href: string;
   badge?: string;
+  iconClassName: string;
+  iconWrapClassName: string;
 }
 
 function getParam(value?: string | string[]) {
@@ -122,6 +124,8 @@ export default async function SettingsPage({ searchParams }: { searchParams?: Pr
       group: "Account",
       icon: HiMiniUser,
       href: user ? `/users/${user.id}` : "/users",
+      iconClassName: "text-blue-600",
+      iconWrapClassName: "bg-blue-50 ring-1 ring-blue-100",
     },
     {
       id: "password",
@@ -130,6 +134,8 @@ export default async function SettingsPage({ searchParams }: { searchParams?: Pr
       group: "Account",
       icon: HiMiniLockClosed,
       href: user ? `/users/${user.id}` : "/users",
+      iconClassName: "text-rose-600",
+      iconWrapClassName: "bg-rose-50 ring-1 ring-rose-100",
     },
     {
       id: "language",
@@ -138,6 +144,8 @@ export default async function SettingsPage({ searchParams }: { searchParams?: Pr
       group: "Account",
       icon: HiMiniLanguage,
       href: buildSettingsHref({ section: "language", moduleScope, modulePage, moduleSection, widgetCategory, widgetPage }),
+      iconClassName: "text-emerald-600",
+      iconWrapClassName: "bg-emerald-50 ring-1 ring-emerald-100",
     },
     {
       id: "appearance",
@@ -146,6 +154,8 @@ export default async function SettingsPage({ searchParams }: { searchParams?: Pr
       group: "Account",
       icon: HiMiniPaintBrush,
       href: buildSettingsHref({ section: "appearance", moduleScope, modulePage, moduleSection, widgetCategory, widgetPage }),
+      iconClassName: "text-violet-600",
+      iconWrapClassName: "bg-violet-50 ring-1 ring-violet-100",
     },
     {
       id: "notifications",
@@ -154,6 +164,8 @@ export default async function SettingsPage({ searchParams }: { searchParams?: Pr
       group: "Account",
       icon: HiMiniBellAlert,
       href: buildSettingsHref({ section: "notifications", moduleScope, modulePage, moduleSection, widgetCategory, widgetPage }),
+      iconClassName: "text-amber-600",
+      iconWrapClassName: "bg-amber-50 ring-1 ring-amber-100",
     },
     {
       id: "whatsapp",
@@ -162,6 +174,8 @@ export default async function SettingsPage({ searchParams }: { searchParams?: Pr
       group: "Account",
       icon: HiMiniChatBubbleLeftRight,
       href: buildSettingsHref({ section: "whatsapp", moduleScope, modulePage, moduleSection, widgetCategory, widgetPage }),
+      iconClassName: "text-green-600",
+      iconWrapClassName: "bg-green-50 ring-1 ring-green-100",
     },
     {
       id: "ai",
@@ -170,6 +184,8 @@ export default async function SettingsPage({ searchParams }: { searchParams?: Pr
       group: "Workspace",
       icon: HiMiniCpuChip,
       href: buildSettingsHref({ section: "ai", moduleScope, modulePage, moduleSection, widgetCategory, widgetPage }),
+      iconClassName: "text-indigo-600",
+      iconWrapClassName: "bg-indigo-50 ring-1 ring-indigo-100",
     },
     {
       id: "backup",
@@ -178,6 +194,8 @@ export default async function SettingsPage({ searchParams }: { searchParams?: Pr
       group: "Workspace",
       icon: HiMiniCircleStack,
       href: buildSettingsHref({ section: "backup", moduleScope, modulePage, moduleSection, widgetCategory, widgetPage }),
+      iconClassName: "text-slate-600",
+      iconWrapClassName: "bg-slate-100 ring-1 ring-slate-200",
     },
     {
       id: "module-settings",
@@ -187,6 +205,8 @@ export default async function SettingsPage({ searchParams }: { searchParams?: Pr
       icon: HiMiniCog6Tooth,
       href: buildSettingsHref({ section: "module-settings", moduleScope, modulePage, moduleSection, widgetCategory, widgetPage }),
       badge: `${moduleCount} modules`,
+      iconClassName: "text-cyan-600",
+      iconWrapClassName: "bg-cyan-50 ring-1 ring-cyan-100",
     },
     {
       id: "sales",
@@ -195,6 +215,8 @@ export default async function SettingsPage({ searchParams }: { searchParams?: Pr
       group: "Operations",
       icon: HiMiniUsers,
       href: "/contacts",
+      iconClassName: "text-orange-600",
+      iconWrapClassName: "bg-orange-50 ring-1 ring-orange-100",
     },
     {
       id: "hr",
@@ -203,6 +225,8 @@ export default async function SettingsPage({ searchParams }: { searchParams?: Pr
       group: "Operations",
       icon: HiMiniUserGroup,
       href: "/users",
+      iconClassName: "text-blue-500",
+      iconWrapClassName: "bg-blue-50 ring-1 ring-blue-100",
     },
     {
       id: "accounting",
@@ -211,6 +235,8 @@ export default async function SettingsPage({ searchParams }: { searchParams?: Pr
       group: "Operations",
       icon: HiMiniBriefcase,
       href: buildSettingsHref({ section: "accounting", moduleScope, modulePage, moduleSection, widgetCategory, widgetPage }),
+      iconClassName: "text-emerald-600",
+      iconWrapClassName: "bg-emerald-50 ring-1 ring-emerald-100",
     },
     {
       id: "workflow",
@@ -219,6 +245,8 @@ export default async function SettingsPage({ searchParams }: { searchParams?: Pr
       group: "Operations",
       icon: HiMiniSwatch,
       href: buildSettingsHref({ section: "workflow", moduleScope, modulePage, moduleSection, widgetCategory, widgetPage }),
+      iconClassName: "text-sky-600",
+      iconWrapClassName: "bg-sky-50 ring-1 ring-sky-100",
     },
     {
       id: "document-types",
@@ -227,6 +255,8 @@ export default async function SettingsPage({ searchParams }: { searchParams?: Pr
       group: "Operations",
       icon: HiMiniDocumentText,
       href: "/files",
+      iconClassName: "text-fuchsia-600",
+      iconWrapClassName: "bg-fuchsia-50 ring-1 ring-fuchsia-100",
     },
     {
       id: "widgets",
@@ -235,6 +265,8 @@ export default async function SettingsPage({ searchParams }: { searchParams?: Pr
       group: "Operations",
       icon: HiMiniSquares2X2,
       href: buildSettingsHref({ section: "dashboard-widgets", moduleScope, modulePage, moduleSection, widgetCategory, widgetPage }),
+      iconClassName: "text-violet-600",
+      iconWrapClassName: "bg-violet-50 ring-1 ring-violet-100",
     },
   ];
 
@@ -349,8 +381,11 @@ export default async function SettingsPage({ searchParams }: { searchParams?: Pr
                   )}
                 >
                   <div className="space-y-4">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-md bg-muted text-muted-foreground transition-colors group-hover:bg-background group-hover:text-foreground">
-                      <Icon className="h-5 w-5" />
+                    <span className={cn(
+                      "flex h-12 w-12 items-center justify-center rounded-md transition-colors group-hover:bg-background",
+                      card.iconWrapClassName,
+                    )}>
+                      <Icon className={cn("h-5 w-5", card.iconClassName)} />
                     </span>
                     <div className="space-y-1.5">
                       <div className="flex items-center gap-2">
