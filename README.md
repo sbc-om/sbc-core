@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## SBC Core
+
+SBC Core is a modular ERP platform kernel built as a pnpm monorepo. The console app runs on Next.js, core services live in `packages/*`, and business capabilities are shipped as installable modules under `modules/*`.
+
+## Development
 
 ## Getting Started
 
-First, run the development server:
+1. Install dependencies:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Copy the environment file:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+cp .env.example .env
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. Start infrastructure services:
 
-## Learn More
+```bash
+docker compose -f docker/docker-compose.yml -f docker/docker-compose.dev.yml up -d
+```
 
-To learn more about Next.js, take a look at the following resources:
+4. Start the development server:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+pnpm dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Open [http://localhost:3000](http://localhost:3000).
 
-## Deploy on Vercel
+## File Storage
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The global file manager module supports two backends:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `STORAGE_DRIVER="s3"`: uses MinIO or any S3-compatible service through `STORAGE_ENDPOINT`, `STORAGE_ACCESS_KEY`, `STORAGE_SECRET_KEY`, `STORAGE_BUCKET`, and `STORAGE_REGION`.
+- `STORAGE_DRIVER="local"`: stores files on the app server filesystem under `FILE_STORAGE_ROOT`.
+
+With the default local development setup, MinIO is available at:
+
+- API: [http://localhost:9000](http://localhost:9000)
+- Console: [http://localhost:9001](http://localhost:9001)
+
+The documents module will create the configured bucket automatically on first use when `STORAGE_DRIVER` is set to `s3`.
+
+## Validation
+
+```bash
+pnpm typecheck
+pnpm build
+```
+
+## Notes
+
+- The global file manager UI is exposed at `/files`.
+- The current bootstrap installs `base`, `iam`, and `documents` automatically.
+- The repository architecture and engineering rules are defined in `AGENTS.md`.

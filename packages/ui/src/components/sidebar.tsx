@@ -7,6 +7,7 @@ import {
   HiMiniChartBar,
   HiMiniCog6Tooth,
   HiMiniCube,
+  HiMiniFolderOpen,
   HiMiniShieldCheck,
   HiMiniUserGroup,
 } from "react-icons/hi2";
@@ -18,6 +19,7 @@ const iconMap: Record<string, IconType> = {
   LayoutDashboard: HiMiniChartBar,
   Settings2: HiMiniCog6Tooth,
   Package: HiMiniCube,
+  FolderOpen: HiMiniFolderOpen,
   Users: HiMiniUserGroup,
   ShieldCheck: HiMiniShieldCheck,
   ScrollText: PiScrollDuotone,

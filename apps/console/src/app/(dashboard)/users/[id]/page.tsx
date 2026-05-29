@@ -2,8 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getUserWithRoles } from "@sbc/module-iam/services";
 import { listRoles } from "@sbc/module-iam/services";
+import { getDocumentById, getLatestDocumentLink, listLinkedDocuments } from "@sbc/module-documents/services";
+import type { FileManagerItem } from "@/components/documents/types";
 import { RoleAssignment } from "./_components/role-assignment";
-import { updateUserAction } from "@sbc/module-iam/actions";
+import { LinkedAssetsManager } from "./_components/linked-assets-manager";
+import { ProfileForm } from "./_components/profile-form";
+import { updateConsoleUserAction } from "@/actions/users";
 
 interface Props { params: Promise<{ id: string }> }
 
@@ -12,10 +16,44 @@ export default async function UserDetailPage({ params }: Props) {
   const [user, allRoles] = await Promise.all([getUserWithRoles(id), listRoles()]);
   if (!user) notFound();
 
+  const avatarLink = await getLatestDocumentLink({
+    tenantId: user.tenantId ?? "00000000-0000-0000-0000-000000000001",
+    resourceModule: "iam",
+    resourceType: "user",
+    resourceId: user.id,
+    fieldName: "avatar",
+  });
+
+  const avatarDocument = avatarLink
+    ? await getDocumentById(avatarLink.documentId, user.tenantId ?? "00000000-0000-0000-0000-000000000001")
+    : null;
+  const linkedDocuments = await listLinkedDocuments({
+    tenantId: user.tenantId ?? "00000000-0000-0000-0000-000000000001",
+    resourceModule: "iam",
+    resourceType: "user",
+    resourceId: user.id,
+  });
+  const tenantId = user.tenantId ?? "00000000-0000-0000-0000-000000000001";
+
   async function updateWithId(formData: FormData) {
     "use server";
-    await updateUserAction(id, formData);
+    await updateConsoleUserAction(id, formData);
   }
+
+  const initialAvatar: FileManagerItem | null = avatarDocument
+    ? {
+        id: avatarDocument.id,
+        title: avatarDocument.title,
+        originalName: avatarDocument.originalName,
+        folder: avatarDocument.folder,
+        moduleName: avatarDocument.moduleName,
+        mimeType: avatarDocument.mimeType,
+        extension: avatarDocument.extension,
+        sizeBytes: avatarDocument.sizeBytes,
+        tags: avatarDocument.tags,
+        createdAt: avatarDocument.createdAt.toISOString(),
+      }
+    : null;
 
   return (
     <div className="space-y-6">
@@ -29,41 +67,7 @@ export default async function UserDetailPage({ params }: Props) {
         {/* Edit profile */}
         <section className="rounded-lg border border-border p-6 space-y-4">
           <h3 className="font-semibold">Profile</h3>
-          <form action={updateWithId} className="space-y-4">
-            <div>
-              <label className="mb-1 block text-sm font-medium">Full Name</label>
-              <input
-                name="name"
-                defaultValue={user.name}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium">Email</label>
-              <input
-                name="email"
-                type="email"
-                defaultValue={user.email}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium">New Password <span className="text-muted-foreground font-normal">(leave blank to keep)</span></label>
-              <input
-                name="password"
-                type="password"
-                minLength={8}
-                placeholder="••••••••"
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
-              />
-            </div>
-            <button
-              type="submit"
-              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-            >
-              Save Changes
-            </button>
-          </form>
+          <ProfileForm user={user} initialAvatar={initialAvatar} action={updateWithId} />
         </section>
 
         {/* Role assignment */}
@@ -81,6 +85,36 @@ export default async function UserDetailPage({ params }: Props) {
       </div>
 
       {/* Info */}
+      <section className="rounded-lg border border-border p-6 space-y-4">
+        <div>
+          <h3 className="font-semibold">Linked Assets</h3>
+          <p className="text-sm text-muted-foreground">Structured document relations attached to this user record.</p>
+        </div>
+        <LinkedAssetsManager
+          items={linkedDocuments.map(({ link, document }) => ({
+            link: {
+              id: link.id,
+              fieldName: link.fieldName,
+              linkLabel: link.linkLabel,
+              visibility: link.visibility as "internal" | "tenant" | "public",
+              sortOrder: link.sortOrder,
+            },
+            document: {
+              id: document.id,
+              title: document.title,
+              originalName: document.originalName,
+              folder: document.folder,
+              sizeBytes: document.sizeBytes,
+            },
+          }))}
+          tenantId={tenantId}
+          resourcePath={`/users/${user.id}`}
+          resourceModule="iam"
+          resourceType="user"
+          resourceId={user.id}
+        />
+      </section>
+
       <div className="rounded-lg border border-border p-4 text-xs text-muted-foreground grid grid-cols-2 gap-2 sm:grid-cols-4">
         <div><span className="font-medium block">Status</span>{user.isActive ? "Active" : "Inactive"}</div>
         <div><span className="font-medium block">Super Admin</span>{user.isSuperAdmin ? "Yes" : "No"}</div>

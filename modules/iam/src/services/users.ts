@@ -9,6 +9,7 @@ export async function listUsers() {
       id:          users.id,
       name:        users.name,
       email:       users.email,
+      avatarUrl:   users.avatarUrl,
       isActive:    users.isActive,
       isSuperAdmin: users.isSuperAdmin,
       lastLoginAt: users.lastLoginAt,
@@ -43,16 +44,23 @@ export async function createUser(input: CreateUserInput, tenantId?: string) {
   const passwordHash = await hashPassword(input.password);
   const [user] = await db
     .insert(users)
-    .values({ name: input.name, email: input.email, passwordHash, tenantId: tenantId ?? undefined })
+    .values({
+      name: input.name,
+      email: input.email,
+      passwordHash,
+      avatarUrl: input.avatarUrl,
+      tenantId: tenantId ?? undefined,
+    })
     .returning();
   return user;
 }
 
-export async function updateUser(id: string, input: UpdateUserInput) {
+export async function updateUser(id: string, input: Omit<UpdateUserInput, "avatarUrl"> & { avatarUrl?: string | null }) {
   const set: Partial<typeof users.$inferInsert> = {};
   if (input.name)     set.name = input.name;
   if (input.email)    set.email = input.email;
   if (input.password) set.passwordHash = await hashPassword(input.password);
+  if (Object.prototype.hasOwnProperty.call(input, "avatarUrl")) set.avatarUrl = input.avatarUrl ?? null;
   set.updatedAt = new Date();
 
   const [updated] = await db.update(users).set(set).where(eq(users.id, id)).returning();

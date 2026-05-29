@@ -1,4 +1,5 @@
 import { manifest as baseManifest } from "@sbc/module-base";
+import { manifest as documentsManifest } from "@sbc/module-documents";
 import { manifest as iamManifest }  from "@sbc/module-iam";
 import { moduleRegistry, installModule } from "@sbc/kernel";
 import { db, modules, tenants, users } from "@sbc/database";
@@ -7,7 +8,7 @@ import { hashPassword } from "@sbc/auth";
 import type { ModuleManifest } from "@sbc/sdk";
 
 export const SYSTEM_TENANT_ID = "00000000-0000-0000-0000-000000000001";
-const CORE_MODULES: ModuleManifest[] = [baseManifest, iamManifest];
+const CORE_MODULES: ModuleManifest[] = [baseManifest, iamManifest, documentsManifest];
 
 let bootstrapped = false;
 

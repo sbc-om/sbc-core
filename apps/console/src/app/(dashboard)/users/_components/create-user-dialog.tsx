@@ -1,22 +1,28 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { createUserAction } from "@sbc/module-iam/actions";
+import { createConsoleUserAction } from "@/actions/users";
+import { FilePickerDialog } from "@/components/documents/file-picker-dialog";
+import type { FileManagerItem } from "@/components/documents/types";
 
 export function CreateUserDialog() {
   const [open, setOpen]           = useState(false);
   const [error, setError]         = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [avatarFile, setAvatarFile] = useState<FileManagerItem | null>(null);
+  const [avatarVisibility, setAvatarVisibility] = useState<"internal" | "tenant" | "public">("internal");
   const formRef = useRef<HTMLFormElement>(null);
 
   function handleSubmit(formData: FormData) {
     setError(null);
     startTransition(async () => {
-      const result = await createUserAction(formData);
+      const result = await createConsoleUserAction(formData);
       if (result?.error) {
         setError(result.error);
       } else {
         formRef.current?.reset();
+        setAvatarFile(null);
+        setAvatarVisibility("internal");
         setOpen(false);
       }
     });
@@ -38,6 +44,9 @@ export function CreateUserDialog() {
             <h2 className="mb-4 text-lg font-semibold">Create User</h2>
 
             <form ref={formRef} action={handleSubmit} className="space-y-4">
+              <input name="avatarDocumentId" value={avatarFile?.id ?? ""} readOnly hidden />
+              <input name="avatarVisibility" value={avatarVisibility} readOnly hidden />
+
               <div>
                 <label className="mb-1 block text-sm font-medium">Full Name</label>
                 <input
@@ -67,6 +76,60 @@ export function CreateUserDialog() {
                   placeholder="Min. 8 characters"
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
                 />
+              </div>
+
+              <div className="rounded-lg border border-border bg-muted/30 p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">Avatar from file library</label>
+                    <p className="text-xs leading-5 text-muted-foreground">
+                      Reuse an existing image from the central file manager instead of uploading a new one.
+                    </p>
+                  </div>
+                  <FilePickerDialog
+                    buttonLabel={avatarFile ? "Replace avatar" : "Choose avatar"}
+                    title="Choose user avatar"
+                    description="Pick an image from the global file manager or upload one inline for this user profile."
+                    selectedFileId={avatarFile?.id ?? null}
+                    onSelect={setAvatarFile}
+                  />
+                </div>
+
+                {avatarFile && (
+                  <div className="mt-4 space-y-3 rounded-lg border border-border bg-background px-3 py-3">
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={`/api/files/${avatarFile.id}`}
+                        alt={avatarFile.title}
+                        className="h-12 w-12 rounded-full object-cover"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-foreground">{avatarFile.title}</p>
+                        <p className="truncate text-xs text-muted-foreground">{avatarFile.originalName}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setAvatarFile(null)}
+                        className="rounded-md border border-input px-3 py-1.5 text-xs font-medium transition-colors hover:bg-accent"
+                      >
+                        Remove
+                      </button>
+                    </div>
+
+                    <div>
+                      <label className="mb-1 block text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Visibility</label>
+                      <select
+                        value={avatarVisibility}
+                        onChange={(event) => setAvatarVisibility(event.target.value as "internal" | "tenant" | "public")}
+                        className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+                      >
+                        <option value="internal">Internal: requires files permission</option>
+                        <option value="tenant">Tenant: any signed-in user in this tenant</option>
+                        <option value="public">Public: accessible without sign-in</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {error && <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>}

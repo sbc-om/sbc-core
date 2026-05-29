@@ -41,7 +41,22 @@ export default async function UsersPage() {
               {users.map((user) => (
                 <tr key={user.id} className="border-b border-border last:border-0 hover:bg-muted/20">
                   <td className="px-4 py-3 font-medium">
-                    {user.name}
+                    <div className="flex items-center gap-3">
+                      {user.avatarUrl ? (
+                        <img
+                          src={user.avatarUrl}
+                          alt={user.name}
+                          className="h-10 w-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <span className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-muted text-xs font-semibold text-slate-700">
+                          {user.name.charAt(0).toUpperCase()}
+                        </span>
+                      )}
+                      <span>
+                        {user.name}
+                      </span>
+                    </div>
                     {user.isSuperAdmin && (
                       <span className="ml-2 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800">Super Admin</span>
                     )}

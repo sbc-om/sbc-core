@@ -6,11 +6,16 @@ import { createUser, updateUser, setUserActive, assignRoleToUser, removeRoleFrom
 
 const SYSTEM_TENANT = "00000000-0000-0000-0000-000000000001";
 
-export async function createUserAction(formData: FormData) {
+interface ActionFormData {
+  get(name: string): unknown | null;
+}
+
+export async function createUserAction(formData: ActionFormData) {
   const parsed = CreateUserSchema.safeParse({
     name:     formData.get("name"),
     email:    formData.get("email"),
     password: formData.get("password"),
+    avatarUrl: formData.get("avatarUrl") || undefined,
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
 
@@ -25,11 +30,12 @@ export async function createUserAction(formData: FormData) {
   }
 }
 
-export async function updateUserAction(id: string, formData: FormData) {
+export async function updateUserAction(id: string, formData: ActionFormData) {
   const parsed = UpdateUserSchema.safeParse({
     name:     formData.get("name") || undefined,
     email:    formData.get("email") || undefined,
     password: formData.get("password") || undefined,
+    avatarUrl: formData.get("avatarUrl") || undefined,
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Invalid input" };
 
