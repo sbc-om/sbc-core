@@ -31,16 +31,16 @@ export function UserHeader({ user, onMenuToggle }: Props) {
           <ThemeToggle compact />
           <button
             onClick={() => setOpen((p) => !p)}
-            className="flex items-center gap-2 rounded-md border border-border bg-background px-2.5 py-1.5 text-sm transition-colors hover:bg-muted"
+            className="flex h-10 items-center gap-2 rounded-md border border-border bg-background px-2.5 text-sm shadow-sm transition-colors hover:bg-muted"
           >
-            <span className="flex h-7 w-7 items-center justify-center rounded-md border border-border bg-muted text-xs font-semibold text-foreground">
+            <span className="app-avatar-chip h-7 w-7 rounded-md text-xs font-semibold text-foreground">
               {user.name.charAt(0).toUpperCase()}
             </span>
             <span className="hidden max-w-[140px] truncate font-medium text-foreground sm:block">
               {user.name}
             </span>
             {user.isSuperAdmin && (
-              <span className="hidden rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground sm:block">
+              <span className="app-badge app-badge-muted hidden sm:inline-flex">
                 Admin
               </span>
             )}

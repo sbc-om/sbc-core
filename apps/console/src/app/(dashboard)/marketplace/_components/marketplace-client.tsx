@@ -97,7 +97,7 @@ export function MarketplaceClient({ entries, stats }: Props) {
         </div>
 
         {/* Category tabs */}
-        <div className="flex items-center gap-1 overflow-x-auto pb-0.5">
+        <div className="app-surface flex gap-1.5 overflow-x-auto p-1.5">
           {CATEGORIES.map((cat) => {
             const CatIcon = CAT_ICONS[cat.icon] ?? HiMiniSquares2X2;
             const isActive = activeCategory === cat.key;
@@ -109,20 +109,25 @@ export function MarketplaceClient({ entries, stats }: Props) {
                 type="button"
                 onClick={() => setActiveCategory(cat.key)}
                 className={[
-                  "inline-flex shrink-0 items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors",
+                  "inline-flex h-10 shrink-0 items-center gap-2 rounded-md px-3 text-xs font-semibold transition-all",
                   isActive
-                    ? "border-foreground bg-foreground text-background"
-                    : "border-border bg-background text-muted-foreground hover:border-slate-300 hover:text-foreground",
+                    ? "bg-foreground text-background shadow-sm"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 ].join(" ")}
               >
-                <CatIcon className="h-3.5 w-3.5" />
-                {cat.label}
+                <span className={[
+                  "flex h-6 w-6 items-center justify-center rounded-md transition-colors",
+                  isActive ? "bg-white/14 text-current" : "bg-muted text-muted-foreground",
+                ].join(" ")}>
+                  <CatIcon className="h-3.5 w-3.5" />
+                </span>
+                <span>{cat.label}</span>
                 {count !== null && count > 0 && (
                   <span className={[
-                    "ml-0.5 rounded border px-1.5 py-0 text-[10px] font-semibold tabular-nums",
+                    "rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums",
                     isActive
-                      ? "border-white/30 bg-white/20 text-white"
-                      : "border-border bg-muted text-foreground",
+                      ? "bg-white/14 text-white"
+                      : "bg-background text-foreground ring-1 ring-border",
                   ].join(" ")}>
                     {count}
                   </span>

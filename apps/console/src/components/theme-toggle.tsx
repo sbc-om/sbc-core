@@ -37,11 +37,11 @@ export function ThemeToggle({ compact = false }: Props) {
         aria-expanded={open}
         aria-label="Select theme"
         className={cn(
-          "inline-flex items-center gap-1.5 rounded-md border border-border bg-background text-foreground shadow-sm transition-colors hover:bg-muted",
-          compact ? "h-9 px-2.5" : "h-10 px-3",
+          "inline-flex h-10 items-center gap-1.5 rounded-md border border-border bg-background px-2.5 text-foreground shadow-sm transition-colors hover:bg-muted",
+          !compact && "px-3",
         )}
       >
-        <span className="flex h-7 w-7 items-center justify-center rounded-md bg-muted text-foreground">
+        <span className="flex h-7 w-7 items-center justify-center text-foreground">
           <ActiveIcon className="h-4 w-4" />
         </span>
         {!compact && <span className="text-sm font-medium text-foreground">{activeOption.label}</span>}
@@ -75,7 +75,7 @@ export function ThemeToggle({ compact = false }: Props) {
                       active && "bg-muted",
                     )}
                   >
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted text-foreground">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center text-foreground">
                       <OptionIcon className="h-4 w-4" />
                     </span>
                     <span className="min-w-0 flex-1 text-sm font-medium text-foreground">{option.label}</span>

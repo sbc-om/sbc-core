@@ -48,7 +48,7 @@ export function ActionButton({ name, title, status, pricing, installable }: Prop
     });
   }
 
-  const base = "inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50";
+  const base = "inline-flex h-9 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border px-3 text-xs font-semibold transition-colors disabled:opacity-50";
 
   if (status === "core") {
     return (
@@ -65,7 +65,7 @@ export function ActionButton({ name, title, status, pricing, installable }: Prop
         type="button"
         disabled={pending}
         onClick={() => void handleUninstall()}
-        className={`${base} border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100`}
+        className={`${base} border-rose-300/40 bg-rose-500/5 text-rose-600 hover:bg-rose-500/10 dark:text-rose-400`}
       >
         <HiMiniTrash className="h-3.5 w-3.5" />
         {pending ? "Removing…" : "Uninstall"}
@@ -88,7 +88,7 @@ export function ActionButton({ name, title, status, pricing, installable }: Prop
         type="button"
         disabled={pending}
         onClick={handleInstall}
-        className={`${base} border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100`}
+        className={`${base} border-rose-300/40 bg-rose-500/5 text-rose-600 hover:bg-rose-500/10 dark:text-rose-400`}
       >
         {pending ? "Retrying…" : "Retry"}
       </button>
@@ -98,7 +98,7 @@ export function ActionButton({ name, title, status, pricing, installable }: Prop
   // Not installable yet (coming soon)
   if (!installable) {
     return (
-      <span className={`${base} border-border bg-muted text-muted-foreground cursor-default`}>
+      <span className={`${base} cursor-default border-border bg-muted/70 text-muted-foreground`}>
         <HiMiniClock className="h-3.5 w-3.5" />
         Coming Soon
       </span>
@@ -111,7 +111,7 @@ export function ActionButton({ name, title, status, pricing, installable }: Prop
       type="button"
       disabled={pending}
       onClick={handleInstall}
-      className={`${base} border-primary bg-primary text-primary-foreground hover:bg-primary/90`}
+      className={`${base} border-foreground bg-foreground text-background shadow-sm hover:opacity-92`}
     >
       <HiMiniArrowDownTray className="h-3.5 w-3.5" />
       {pending ? "Installing…" : "Install"}
