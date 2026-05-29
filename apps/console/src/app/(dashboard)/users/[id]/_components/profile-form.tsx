@@ -77,7 +77,6 @@ export function ProfileForm({ user, initialAvatar, action }: Props) {
             title="Choose profile photo"
             description="Select or upload an image from the file manager."
             accept="image/*"
-            initialFolder="users/avatars"
             uploadDefaults={{ folder: "users/avatars", moduleName: "iam", tags: "avatar,user-profile" }}
             selectedFileId={avatarFile?.id ?? null}
             onSelect={setAvatarFile}

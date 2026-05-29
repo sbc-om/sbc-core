@@ -60,7 +60,7 @@ export function FilePickerDialog({
   const [open, setOpen]       = useState(false);
   const [files, setFiles]     = useState<FileManagerItem[]>([]);
   const [query, setQuery]     = useState("");
-  const [folder, setFolder]   = useState(initialFolder?.trim() || "all");
+  const [folder, setFolder]   = useState("all");   // always start browsing from all folders
   const [loading, setLoading] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [mobileTab, setMobileTab]   = useState<"browse" | "upload">("browse");
@@ -78,12 +78,20 @@ export function FilePickerDialog({
   const visibleFiles = useMemo(() => files.filter((f) => matchesAccept(f, accept)), [accept, files]);
   const folders      = useMemo(() => ["all", ...Array.from(new Set(files.map((f) => f.folder))).sort()], [files]);
 
-  useEffect(() => { setFolder(initialFolder?.trim() || "all"); }, [initialFolder]);
   useEffect(() => {
     setUploadFolder(uploadDefaults?.folder ?? "");
     setUploadModuleName(uploadDefaults?.moduleName ?? "");
     setUploadTags(uploadDefaults?.tags ?? "");
   }, [uploadDefaults?.folder, uploadDefaults?.moduleName, uploadDefaults?.tags]);
+
+  // Reset browse state when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setQuery("");
+      setFolder("all");
+      setMobileTab("browse");
+    }
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;

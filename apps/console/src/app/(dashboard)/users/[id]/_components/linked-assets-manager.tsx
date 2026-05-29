@@ -249,7 +249,6 @@ function AddLinkedAssetCard({
           buttonLabel={selectedFile ? "Replace file" : "Choose file"}
           title="Choose asset to link"
           description="Select an existing file from the global file manager and attach it to this record with structured metadata."
-          initialFolder="users/assets"
           uploadDefaults={{
             folder: "users/assets",
             moduleName: "iam",
