@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, type ComponentType } from "react";
+import { useState, useCallback, useId, type ComponentType } from "react";
 import {
   DndContext,
   closestCenter,
@@ -192,6 +192,7 @@ export function WidgetArea({ widgets, initialLayout, userId, tenantId }: Props) 
 
   const [layout, setLayout] = useState<WidgetLayoutItem[]>(buildInitialState);
   const [saving, setSaving] = useState(false);
+  const dndId = useId();
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -245,6 +246,7 @@ export function WidgetArea({ widgets, initialLayout, userId, tenantId }: Props) 
       )}
 
       <DndContext
+        id={dndId}
         sensors={sensors}
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}

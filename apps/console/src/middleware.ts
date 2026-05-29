@@ -4,9 +4,10 @@ import { NextRequest, NextResponse } from "next/server";
 const SESSION_COOKIE = "sbc_session";
 
 const PUBLIC_PATHS = ["/login", "/api/auth", "/api/health", "/_next", "/favicon.ico"];
+const PUBLIC_FILE_PATTERN = /\.[a-zA-Z0-9]+$/;
 
 function isPublic(pathname: string): boolean {
-  return PUBLIC_PATHS.some((p) => pathname.startsWith(p));
+  return PUBLIC_PATHS.some((p) => pathname.startsWith(p)) || PUBLIC_FILE_PATTERN.test(pathname);
 }
 
 export function middleware(req: NextRequest) {
@@ -31,5 +32,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|public/).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\..*).*)"],
 };
