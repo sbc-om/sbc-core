@@ -1,0 +1,31 @@
+{
+  "name": "@sbc/module-contacts",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "exports": {
+    ".":           "./src/index.ts",
+    "./manifest":  "./src/manifest.ts",
+    "./services":  "./src/services/index.ts",
+    "./actions":   "./src/actions/index.ts",
+    "./schema":    "./src/schema.ts"
+  },
+  "dependencies": {
+    "@sbc/database": "workspace:*",
+    "@sbc/sdk":      "workspace:*",
+    "drizzle-orm":   "^0.43.1",
+    "zod":           "^3.25.42"
+  },
+  "peerDependencies": {
+    "next": ">=15.0.0"
+  },
+  "devDependencies": {
+    "@sbc/config":   "workspace:*",
+    "@types/node":   "^20.19.1",
+    "next":          "15.3.2",
+    "react":         "^19.0.0",
+    "typescript":    "^5.8.3"
+  }
+}

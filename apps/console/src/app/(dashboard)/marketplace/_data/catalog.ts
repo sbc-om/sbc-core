@@ -80,6 +80,21 @@ export const CATALOG: CatalogModule[] = [
 
   // ── Sales ────────────────────────────────────────────────────────
   {
+    name:          "contacts",
+    title:         "Contacts",
+    description:   "Store and manage people and organizations — the foundation for CRM, HR, and communication workflows.",
+    category:      "sales",
+    categoryLabel: "Sales",
+    icon:          "identification",
+    version:       "1.0.0",
+    author:        "SBC Team",
+    pricing:       "free",
+    depends:       ["base"],
+    tags:          ["contacts", "people", "organizations", "directory"],
+    featured:      true,
+    installable:   true,
+  },
+  {
     name:          "crm",
     title:         "CRM",
     description:   "Manage customers, leads, and sales pipelines from one unified workspace.",

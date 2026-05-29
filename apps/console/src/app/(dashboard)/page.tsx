@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { eq, desc, gte, sql, and, ne } from "drizzle-orm";
+import { eq, gte, sql } from "drizzle-orm";
 import {
   HiMiniBolt,
   HiMiniCheckCircle,
@@ -19,6 +19,7 @@ import {
   HiMiniBriefcase,
   HiMiniCog6Tooth,
   HiMiniFolderOpen,
+  HiMiniIdentification,
   HiMiniLockClosed,
   HiMiniPhone,
   HiMiniSparkles,
@@ -27,17 +28,18 @@ import {
 } from "react-icons/hi2";
 
 const MODULE_ICONS: Record<string, ComponentType<{ className?: string }>> = {
-  cpu:       HiMiniCpuChip,
-  lock:      HiMiniLockClosed,
-  folder:    HiMiniFolderOpen,
-  users:     HiMiniUserGroup,
-  briefcase: HiMiniBriefcase,
-  banknotes: HiMiniBanknotes,
-  shield:    HiMiniShieldCheck,
-  workflow:  HiMiniSquaresPlus,
-  phone:     HiMiniPhone,
-  sparkles:  HiMiniSparkles,
-  cog:       HiMiniCog6Tooth,
+  cpu:            HiMiniCpuChip,
+  lock:           HiMiniLockClosed,
+  folder:         HiMiniFolderOpen,
+  identification: HiMiniIdentification,
+  users:          HiMiniUserGroup,
+  briefcase:      HiMiniBriefcase,
+  banknotes:      HiMiniBanknotes,
+  shield:         HiMiniShieldCheck,
+  workflow:       HiMiniSquaresPlus,
+  phone:          HiMiniPhone,
+  sparkles:       HiMiniSparkles,
+  cog:            HiMiniCog6Tooth,
 };
 
 // ── page ──────────────────────────────────────────────────────────────────────
@@ -46,7 +48,7 @@ export default async function DashboardPage() {
   const dayStart = new Date(now);
   dayStart.setHours(0, 0, 0, 0);
 
-  const [installedRows, userCount, auditToday, pendingEvents] = await Promise.all([
+  const [installedRowsRaw, userCount, auditToday, pendingEvents] = await Promise.all([
     db.select({ name: modules.name, title: modules.title, version: modules.installedVersion })
       .from(modules)
       .where(eq(modules.state, "installed")),
@@ -55,20 +57,37 @@ export default async function DashboardPage() {
     db.select({ count: sql<number>`count(*)::int` }).from(events).where(sql`processed_at IS NULL`),
   ]);
 
-  const installedCount   = installedRows.length;
-  const activeUserCount  = userCount[0]?.count ?? 0;
-  const auditCount       = auditToday[0]?.count ?? 0;
-  const eventCount       = pendingEvents[0]?.count ?? 0;
+  // Deduplicate by name (the modules table has no unique constraint on name alone)
+  const seen = new Set<string>();
+  const installedRows = installedRowsRaw.filter((r) => {
+    if (seen.has(r.name)) return false;
+    seen.add(r.name);
+    return true;
+  });
 
-  // Enrich installed modules with catalog metadata (icon, description, category)
+  const installedCount  = installedRows.length;
+  const activeUserCount = userCount[0]?.count ?? 0;
+  const auditCount      = auditToday[0]?.count ?? 0;
+  const eventCount      = pendingEvents[0]?.count ?? 0;
+
+  // Enrich with catalog metadata
   const catalogMap = new Map(CATALOG.map((c) => [c.name, c]));
-  const enriched = installedRows
-    .map((row) => ({ ...row, catalog: catalogMap.get(row.name) ?? null }))
-    .filter((r) => r.catalog !== null);
 
-  // Separate core from user-facing modules
-  const coreModules = enriched.filter((r) => r.catalog?.category === "system");
-  const appModules  = enriched.filter((r) => r.catalog?.category !== "system");
+  type EnrichedModule = {
+    name:    string;
+    title:   string;
+    version: string | null;
+    catalog: (typeof CATALOG)[number];
+  };
+
+  const enriched = installedRows
+    .flatMap((row): EnrichedModule[] => {
+      const catalog = catalogMap.get(row.name);
+      return catalog ? [{ ...row, catalog }] : [];
+    });
+
+  const coreModules = enriched.filter((r) => r.catalog.category === "system");
+  const appModules  = enriched.filter((r) => r.catalog.category !== "system");
 
   return (
     <div className="space-y-8">

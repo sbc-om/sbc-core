@@ -8,6 +8,7 @@ import {
   HiMiniCog6Tooth,
   HiMiniCube,
   HiMiniFolderOpen,
+  HiMiniIdentification,
   HiMiniShieldCheck,
   HiMiniShoppingBag,
   HiMiniUserGroup,
@@ -18,15 +19,16 @@ import type { IconType } from "react-icons";
 import { cn } from "../lib/utils";
 
 const iconMap: Record<string, IconType> = {
-  LayoutDashboard: HiMiniChartBar,
-  Settings2:       HiMiniCog6Tooth,
-  Package:         HiMiniCube,
-  FolderOpen:      HiMiniFolderOpen,
-  Users:           HiMiniUserGroup,
-  ShieldCheck:     HiMiniShieldCheck,
-  ScrollText:      PiScrollDuotone,
+  LayoutDashboard:  HiMiniChartBar,
+  Settings2:        HiMiniCog6Tooth,
+  Package:          HiMiniCube,
+  FolderOpen:       HiMiniFolderOpen,
+  Identification:   HiMiniIdentification,
+  Users:            HiMiniUserGroup,
+  ShieldCheck:      HiMiniShieldCheck,
+  ScrollText:       PiScrollDuotone,
   SlidersHorizontal: HiMiniCog6Tooth,
-  Store:           HiMiniShoppingBag,
+  Store:            HiMiniShoppingBag,
 };
 
 export interface SidebarMenuItem {

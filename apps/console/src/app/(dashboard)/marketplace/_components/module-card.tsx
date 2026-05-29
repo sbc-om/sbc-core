@@ -8,6 +8,7 @@ import {
   HiMiniCpuChip,
   HiMiniExclamationCircle,
   HiMiniFolderOpen,
+  HiMiniIdentification,
   HiMiniLockClosed,
   HiMiniPhone,
   HiMiniShieldCheck,
@@ -20,17 +21,18 @@ import type { CatalogModule, CatalogStatus, Pricing } from "../_data/catalog";
 
 // ── Icon registry ────────────────────────────────────────────────────────────
 const MODULE_ICONS: Record<string, ComponentType<{ className?: string }>> = {
-  cpu:       HiMiniCpuChip,
-  lock:      HiMiniLockClosed,
-  folder:    HiMiniFolderOpen,
-  users:     HiMiniUserGroup,
-  briefcase: HiMiniBriefcase,
-  banknotes: HiMiniBanknotes,
-  shield:    HiMiniShieldCheck,
-  workflow:  HiMiniSquaresPlus,
-  phone:     HiMiniPhone,
-  sparkles:  HiMiniSparkles,
-  cog:       HiMiniCog6Tooth,
+  cpu:            HiMiniCpuChip,
+  lock:           HiMiniLockClosed,
+  folder:         HiMiniFolderOpen,
+  identification: HiMiniIdentification,
+  users:          HiMiniUserGroup,
+  briefcase:      HiMiniBriefcase,
+  banknotes:      HiMiniBanknotes,
+  shield:         HiMiniShieldCheck,
+  workflow:       HiMiniSquaresPlus,
+  phone:          HiMiniPhone,
+  sparkles:       HiMiniSparkles,
+  cog:            HiMiniCog6Tooth,
 };
 
 // ── Pricing config ────────────────────────────────────────────────────────────

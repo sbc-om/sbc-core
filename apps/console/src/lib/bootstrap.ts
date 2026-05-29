@@ -1,4 +1,5 @@
 import { manifest as baseManifest }      from "@sbc/module-base";
+import { manifest as contactsManifest }  from "@sbc/module-contacts";
 import { manifest as documentsManifest } from "@sbc/module-documents";
 import { manifest as iamManifest }       from "@sbc/module-iam";
 import {
@@ -15,7 +16,10 @@ import { hashPassword } from "@sbc/auth";
 import type { ModuleManifest } from "@sbc/sdk";
 
 export const SYSTEM_TENANT_ID = "00000000-0000-0000-0000-000000000001";
-const CORE_MODULES: ModuleManifest[] = [baseManifest, iamManifest, documentsManifest];
+// Core modules are always installed. Installable modules (like contacts) are
+// registered in the registry so the marketplace can discover and install them.
+const CORE_MODULES: ModuleManifest[]        = [baseManifest, iamManifest, documentsManifest];
+const INSTALLABLE_MODULES: ModuleManifest[] = [contactsManifest];
 
 let bootstrapped = false;
 
@@ -92,10 +96,26 @@ export async function bootstrapApp(): Promise<void> {
   if (bootstrapped) return;
   bootstrapped = true;
 
-  try { await ensureSystemTenant(); }      catch (err) { console.error("[sbc] tenant error:", err); }
+  try { await ensureSystemTenant(); } catch (err) { console.error("[sbc] tenant error:", err); }
+
   for (const manifest of CORE_MODULES) {
     try { await ensureInstalled(manifest); } catch (err) { console.error(`[sbc] module "${manifest.name}" error:`, err); }
   }
-  try { await syncCoreMenus(); }           catch (err) { console.error("[sbc] menu sync error:", err); }
-  try { await ensureSuperAdmin(); }        catch (err) { console.error("[sbc] admin error:", err); }
+
+  // Register installable modules in the registry so the marketplace can see them.
+  // They are NOT auto-installed; the user installs them from the marketplace.
+  for (const manifest of INSTALLABLE_MODULES) {
+    if (!moduleRegistry.has(manifest.name)) {
+      moduleRegistry.register(manifest, `modules/${manifest.name}`, "discovered");
+    }
+    // Sync DB state into the registry (installed, uninstalled, etc.)
+    const existing = await db.query.modules.findFirst({ where: eq(modules.name, manifest.name) }).catch(() => null);
+    if (existing) {
+      moduleRegistry.setState(manifest.name, existing.state as import("@sbc/database").ModuleState);
+      if (existing.installedVersion) moduleRegistry.setInstalledVersion(manifest.name, existing.installedVersion);
+    }
+  }
+
+  try { await syncCoreMenus(); }    catch (err) { console.error("[sbc] menu sync error:", err); }
+  try { await ensureSuperAdmin(); } catch (err) { console.error("[sbc] admin error:", err); }
 }
