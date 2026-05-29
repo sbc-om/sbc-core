@@ -9,7 +9,7 @@ export function FilePickerDemo() {
   const [selectedFile, setSelectedFile] = useState<FileManagerItem | null>(null);
 
   return (
-    <div className="rounded-lg border border-border bg-background p-5">
+    <div className="app-surface p-5">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-sm font-semibold text-foreground">Shared File Picker</h2>
@@ -28,7 +28,7 @@ export function FilePickerDemo() {
         {selectedFile ? (
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3 min-w-0">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-green-200 bg-green-50 text-green-600">
+              <span className="app-avatar-chip h-8 w-8 shrink-0 rounded-md">
                 <HiMiniCheckCircle className="h-4 w-4" />
               </span>
               <div className="min-w-0">

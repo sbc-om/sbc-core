@@ -210,7 +210,7 @@ export function FilePickerDialog({
   const BrowsePanel = (
     <>
       {/* Search + folder filter */}
-      <div className="flex shrink-0 gap-2 border-b border-border px-4 py-3">
+      <div className="flex shrink-0 gap-2 border-b border-border px-5 py-4">
         <div className="relative flex-1">
           <HiMiniMagnifyingGlass className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <input
@@ -232,17 +232,17 @@ export function FilePickerDialog({
       </div>
 
       {/* File grid */}
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-5">
         {loading ? (
-          <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">Loading…</div>
+          <div className="app-surface flex items-center justify-center py-16 text-sm text-muted-foreground">Loading…</div>
         ) : visibleFiles.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
+          <div className="app-surface flex flex-col items-center justify-center gap-2 py-16 text-center">
             <HiMiniFolderOpen className="h-8 w-8 text-muted-foreground/40" />
             <p className="text-sm font-medium text-foreground">No files found</p>
             <p className="text-xs text-muted-foreground">Switch to Upload tab to add a new file.</p>
           </div>
         ) : (
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2">
             {visibleFiles.map((file) => {
               const previewKind = getFilePreviewKind(file.mimeType);
               const isSelected  = file.id === selectedFileId;
@@ -251,11 +251,11 @@ export function FilePickerDialog({
                   key={file.id}
                   type="button"
                   onClick={() => { onSelect(file); setOpen(false); }}
-                  className={`flex items-start gap-3 rounded-lg border p-3 text-left transition hover:border-primary/50 hover:bg-muted/30 ${
-                    isSelected ? "border-primary bg-primary/5" : "border-border"
+                  className={`app-surface app-surface-interactive flex items-start gap-3 p-3 text-left ${
+                    isSelected ? "border-foreground/20 bg-muted/30" : ""
                   }`}
                 >
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-muted">
+                  <div className="app-avatar-chip h-14 w-14 shrink-0 overflow-hidden rounded-md">
                     {previewKind === "image" ? (
                       <img src={`/api/files/${file.id}`} alt={file.title} className="h-full w-full object-cover" />
                     ) : (
@@ -265,7 +265,7 @@ export function FilePickerDialog({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
                       <p className="truncate text-sm font-medium text-foreground">{file.title}</p>
-                      {isSelected && <HiMiniCheckCircle className="h-4 w-4 shrink-0 text-primary" />}
+                      {isSelected && <HiMiniCheckCircle className="h-4 w-4 shrink-0 text-foreground" />}
                     </div>
                     <p className="truncate text-xs text-muted-foreground">
                       {file.folder} · {formatFileSize(file.sizeBytes)}
@@ -305,17 +305,17 @@ export function FilePickerDialog({
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/55 backdrop-blur-sm"
             aria-label="Close"
           />
 
-          <div className="relative z-10 flex w-full max-h-[92vh] flex-col overflow-hidden rounded-t-lg border border-border bg-background shadow-xl sm:max-w-4xl sm:rounded-lg">
+          <div className="relative z-10 flex w-full max-h-[92vh] flex-col overflow-hidden rounded-t-2xl border border-border/80 bg-background shadow-2xl sm:max-w-5xl sm:rounded-2xl">
 
             {/* Header */}
-            <div className="flex shrink-0 items-center justify-between gap-4 border-b border-border px-6 py-4">
+            <div className="flex shrink-0 items-start justify-between gap-4 border-b border-border px-6 py-5">
               <div>
-                <h2 className="text-base font-semibold text-foreground">{title}</h2>
-                {description && <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>}
+                <h2 className="text-lg font-semibold tracking-tight text-foreground">{title}</h2>
+                {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
               </div>
               <button
                 type="button"
@@ -367,11 +367,13 @@ export function FilePickerDialog({
               <div className="flex flex-1 flex-col overflow-hidden">
                 {BrowsePanel}
               </div>
-              <div className="w-64 shrink-0 overflow-y-auto border-l border-border bg-muted/20 p-4">
-                <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <div className="w-72 shrink-0 overflow-y-auto border-l border-border bg-muted/20 p-5">
+                <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                   Upload New
                 </h3>
-                {UploadPanel}
+                <div className="app-surface p-4">
+                  {UploadPanel}
+                </div>
               </div>
             </div>
 

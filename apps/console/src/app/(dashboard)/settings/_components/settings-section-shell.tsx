@@ -21,7 +21,7 @@ export function SettingsSectionShell({ title, description, children }: Props) {
         </Link>
       </div>
 
-      <section className="rounded-lg border border-border/70 bg-background px-6 py-5 shadow-sm lg:px-8">
+      <section className="app-page-header">
         <div className="space-y-1">
           <h1 className="text-3xl font-semibold tracking-tight text-foreground">{title}</h1>
           <p className="text-sm text-muted-foreground">{description}</p>

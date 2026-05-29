@@ -33,11 +33,11 @@ export default async function FilesPage() {
     await requirePermissionForUser(user, "documents.files.view");
   } catch {
     return (
-      <div className="rounded-lg border border-amber-200 bg-amber-50 p-6">
-        <h1 className="text-lg font-semibold text-amber-900">Access Denied</h1>
-        <p className="mt-2 text-sm leading-relaxed text-amber-800">
+      <div className="app-surface p-6">
+        <h1 className="text-lg font-semibold text-foreground">Access Denied</h1>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           You don&apos;t have permission to access the file manager. Ask an administrator to grant you the
-          <span className="mx-1 font-semibold">documents.files.view</span>
+          <span className="mx-1 font-semibold text-foreground">documents.files.view</span>
           permission.
         </p>
       </div>
@@ -55,7 +55,7 @@ export default async function FilesPage() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div className="app-page-header">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">Files</h1>
         <p className="mt-1 text-sm text-muted-foreground">Upload, manage, and link files used across the platform.</p>
       </div>

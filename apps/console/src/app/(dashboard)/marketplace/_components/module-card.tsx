@@ -74,7 +74,7 @@ export function ModuleCard({ module: mod, status, installedVersion }: Props) {
   return (
     <div
       className={[
-        "group flex flex-col overflow-hidden rounded-lg border border-border bg-background transition-all duration-150",
+        "app-surface group flex flex-col overflow-hidden transition-all duration-150",
         isActive ? "shadow-sm" : "",
         status === "error" ? "border-rose-200/80 dark:border-rose-400/20" : "",
         !isActive && status !== "error" ? "hover:border-foreground/15 hover:shadow-sm" : "",

@@ -10,10 +10,10 @@ export function ToggleActiveButton({ id, isActive }: { id: string; isActive: boo
     <button
       disabled={pending}
       onClick={() => startTransition(() => toggleUserActiveAction(id, !isActive))}
-      className={`inline-block rounded border px-2 py-0.5 text-xs font-medium transition-colors disabled:opacity-50 ${
+      className={`inline-block rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] transition-colors disabled:opacity-50 ${
         isActive
-          ? "border-green-200 bg-green-50 text-green-700 hover:bg-green-100"
-          : "border-border bg-muted text-muted-foreground hover:bg-muted/70"
+          ? "border-border bg-muted text-foreground hover:bg-muted/80"
+          : "border-border bg-background text-muted-foreground hover:bg-muted/60"
       }`}
     >
       {isActive ? "Active" : "Inactive"}

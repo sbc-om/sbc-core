@@ -18,7 +18,7 @@ export default async function UsersPage() {
         <CreateUserDialog />
       </div>
 
-      <div className="overflow-hidden rounded-lg border border-border bg-background">
+      <div className="app-surface overflow-hidden">
         {users.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
             <HiMiniUserGroup className="h-8 w-8 text-muted-foreground/40" />
@@ -55,14 +55,14 @@ export default async function UsersPage() {
                             className="h-8 w-8 rounded-full object-cover"
                           />
                         ) : (
-                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-xs font-semibold text-muted-foreground">
+                          <span className="app-avatar-chip h-8 w-8 shrink-0 rounded-full text-xs font-semibold">
                             {user.name.charAt(0).toUpperCase()}
                           </span>
                         )}
                         <div>
                           <p className="font-medium text-foreground">{user.name}</p>
                           {user.isSuperAdmin && (
-                            <span className="inline-block rounded border border-purple-200 bg-purple-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-purple-700">
+                            <span className="app-badge app-badge-subtle inline-flex">
                               Super Admin
                             </span>
                           )}

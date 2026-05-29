@@ -153,7 +153,7 @@ export function FileManager({ initialFiles, initialStats, canUpload, canDelete }
           { label: "Recent",   value: String(stats.recentUploads) },
           { label: "Folders",  value: String(stats.folderCount) },
         ].map((s) => (
-          <div key={s.label} className="rounded-lg border border-border bg-background p-4">
+          <div key={s.label} className="app-surface p-4">
             <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{s.label}</p>
             <p className="mt-1.5 text-xl font-semibold text-foreground">{s.value}</p>
           </div>
@@ -162,10 +162,10 @@ export function FileManager({ initialFiles, initialStats, canUpload, canDelete }
 
       <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
         {/* Upload panel */}
-        <div className="rounded-lg border border-border bg-background p-5">
+        <div className="app-surface p-5">
           <div className="mb-4 flex items-center justify-between gap-3">
             <h2 className="text-sm font-semibold text-foreground">Upload Files</h2>
-            <span className={`rounded border px-2 py-0.5 text-xs font-medium ${canUpload ? "border-green-200 bg-green-50 text-green-700" : "border-border bg-muted text-muted-foreground"}`}>
+            <span className={`app-badge ${canUpload ? "app-badge-subtle" : "app-badge-muted"}`}>
               {canUpload ? "Enabled" : "Read only"}
             </span>
           </div>
@@ -245,7 +245,7 @@ export function FileManager({ initialFiles, initialStats, canUpload, canDelete }
         </div>
 
         {/* File list */}
-        <div className="rounded-lg border border-border bg-background p-5">
+          <div className="app-surface p-5">
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-sm font-semibold text-foreground">File Library</h2>
             <div className="flex gap-2">
@@ -283,28 +283,28 @@ export function FileManager({ initialFiles, initialStats, canUpload, canDelete }
               </div>
             ) : (
               files.map((file) => (
-                <div key={file.id} className="rounded-lg border border-border bg-background p-3 transition hover:bg-muted/20">
+                <div key={file.id} className="app-surface app-surface-interactive p-3">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex min-w-0 items-start gap-3">
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-muted-foreground">
+                      <span className="app-avatar-chip h-9 w-9 shrink-0 rounded-md">
                         <FileIcon mimeType={file.mimeType} />
                       </span>
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-1.5">
                           <p className="truncate text-sm font-medium text-foreground">{file.title}</p>
-                          <span className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase text-muted-foreground">
+                          <span className="app-badge app-badge-muted px-1.5 py-0.5 text-[10px]">
                             {file.extension?.replace(".", "") || "file"}
                           </span>
                         </div>
                         <p className="mt-0.5 truncate text-xs text-muted-foreground">{file.originalName}</p>
                         <div className="mt-2 flex flex-wrap gap-1.5">
-                          <span className="rounded border border-border bg-muted px-2 py-0.5 text-xs text-muted-foreground">{file.folder}</span>
-                          <span className="rounded border border-border bg-muted px-2 py-0.5 text-xs text-muted-foreground">{formatFileSize(file.sizeBytes)}</span>
+                          <span className="app-badge app-badge-muted px-2 py-0.5 text-[11px] normal-case tracking-normal">{file.folder}</span>
+                          <span className="app-badge app-badge-muted px-2 py-0.5 text-[11px] normal-case tracking-normal">{formatFileSize(file.sizeBytes)}</span>
                           {file.moduleName && (
-                            <span className="rounded border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">{file.moduleName}</span>
+                            <span className="app-badge app-badge-subtle px-2 py-0.5 text-[11px] normal-case tracking-normal">{file.moduleName}</span>
                           )}
                           {file.tags.map((tag) => (
-                            <span key={tag} className="rounded border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">#{tag}</span>
+                            <span key={tag} className="app-badge app-badge-muted px-2 py-0.5 text-[11px] normal-case tracking-normal">#{tag}</span>
                           ))}
                         </div>
                         {getFilePreviewKind(file.mimeType) === "image" && (
@@ -347,7 +347,7 @@ export function FileManager({ initialFiles, initialStats, canUpload, canDelete }
                         <button
                           type="button"
                           onClick={() => void remove(file.id)}
-                          className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-rose-200 px-2.5 py-1.5 text-xs font-medium text-rose-600 transition hover:bg-rose-50"
+                          className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-rose-300/40 px-2.5 py-1.5 text-xs font-medium text-rose-600 transition hover:bg-rose-500/10 dark:text-rose-400"
                         >
                           <HiMiniTrash className="h-3.5 w-3.5" />
                           Delete

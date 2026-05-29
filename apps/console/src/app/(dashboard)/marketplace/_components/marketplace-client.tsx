@@ -171,7 +171,7 @@ export function MarketplaceClient({ entries, stats }: Props) {
           <SectionHeader
             label="Installed"
             count={installed.length}
-            countClass="border-border bg-muted text-foreground"
+            countClass="app-badge app-badge-subtle"
           />
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {installed.map((e) => (
@@ -187,7 +187,7 @@ export function MarketplaceClient({ entries, stats }: Props) {
           <SectionHeader
             label="Available"
             count={available.length}
-            countClass="border-border bg-muted text-foreground"
+            countClass="app-badge app-badge-subtle"
           />
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {available.map((e) => (
@@ -203,7 +203,7 @@ export function MarketplaceClient({ entries, stats }: Props) {
           <SectionHeader
             label="Coming Soon"
             count={comingSoon.length}
-            countClass="border-border bg-muted text-muted-foreground"
+            countClass="app-badge app-badge-muted"
           />
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {comingSoon.map((e) => (
@@ -231,10 +231,10 @@ function SectionHeader({
       <h2 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
         {label}
       </h2>
-      <span className={`rounded border px-2 py-0.5 text-[10px] font-semibold tabular-nums ${countClass}`}>
+      <span className={`tabular-nums ${countClass}`}>
         {count}
       </span>
-      <div className="h-px flex-1 bg-border" />
+      <div className="app-section-rule" />
     </div>
   );
 }

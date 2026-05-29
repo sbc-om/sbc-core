@@ -165,7 +165,7 @@ export default async function SettingsPage() {
 
   return (
     <div className="space-y-8">
-      <section className="rounded-lg border border-border/70 bg-background px-6 py-5 shadow-sm lg:px-8">
+      <section className="app-page-header">
         <div className="space-y-1">
           <h1 className="text-3xl font-semibold tracking-tight text-foreground">Settings</h1>
           <p className="text-sm text-muted-foreground">
@@ -178,7 +178,7 @@ export default async function SettingsPage() {
         <section key={group} className="space-y-4">
           <div className="flex items-center gap-3">
             <h2 className="text-sm font-semibold text-foreground">{group}</h2>
-            <div className="h-px flex-1 bg-border" />
+            <div className="app-section-rule" />
           </div>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {cards.map((card) => {
@@ -188,7 +188,7 @@ export default async function SettingsPage() {
                 <Link
                   key={card.id}
                   href={card.href}
-                  className={cn("group flex min-h-32 flex-col rounded-lg border border-border/70 bg-background p-5 shadow-sm transition-colors hover:border-foreground/15 hover:bg-muted/10")}
+                  className={cn("app-surface app-surface-interactive group flex min-h-32 flex-col p-5")}
                 >
                   <div className="flex flex-col items-start gap-4">
                     <span
@@ -200,7 +200,7 @@ export default async function SettingsPage() {
                     <div className="space-y-2">
                       <p className="text-base font-semibold text-foreground">{card.title}</p>
                       {card.badge && (
-                        <span className="inline-flex rounded-full border border-border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                        <span className="app-badge app-badge-muted">
                           {card.badge}
                         </span>
                       )}

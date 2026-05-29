@@ -27,7 +27,7 @@ export function ThemeAppearancePanel() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <section className="space-y-5 rounded-lg border border-border/70 bg-background p-6 shadow-sm lg:p-8">
+    <section className="app-surface space-y-5 p-6 lg:p-8">
       <div className="space-y-1">
         <h2 className="text-base font-semibold text-foreground">Appearance</h2>
         <p className="text-sm text-muted-foreground">
@@ -46,7 +46,7 @@ export function ThemeAppearancePanel() {
               type="button"
               onClick={() => setTheme(option.id)}
               className={cn(
-                "flex items-start justify-between rounded-lg border border-border/70 bg-background p-5 text-left shadow-sm transition-colors hover:border-foreground/15 hover:bg-muted/10",
+                "app-surface app-surface-interactive flex items-start justify-between p-5 text-left",
                 active && "border-foreground/20 bg-muted/10",
               )}
             >
