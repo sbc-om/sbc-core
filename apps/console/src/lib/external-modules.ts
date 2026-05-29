@@ -7,38 +7,75 @@ import { eq } from "drizzle-orm";
 import type { ModuleManifest } from "@sbc/sdk";
 
 export const EXTERNAL_MODULES_DIR = path.join(process.cwd(), "external-modules");
+const WORKSPACE_ROOT = path.resolve(process.cwd(), "..", "..");
 
-/**
- * Scans the `external-modules/` directory and registers every discovered
- * module in the kernel registry.  Called once during `bootstrapApp()`.
- */
-export async function loadExternalModules(): Promise<void> {
-  let entries: import("node:fs").Dirent[];
+interface ModuleSource {
+  manifestPath: string;
+  modulePath: string;
+}
+
+async function collectModuleSources(): Promise<ModuleSource[]> {
+  const sources: ModuleSource[] = [];
+
   try {
-    entries = await fs.readdir(EXTERNAL_MODULES_DIR, { withFileTypes: true });
+    const entries = await fs.readdir(EXTERNAL_MODULES_DIR, { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      sources.push({
+        manifestPath: path.join(EXTERNAL_MODULES_DIR, entry.name, "manifest.json"),
+        modulePath: path.join(EXTERNAL_MODULES_DIR, entry.name),
+      });
+    }
   } catch {
-    return; // directory doesn't exist yet — nothing to do
+    // ignore missing external-modules directory
   }
 
-  for (const entry of entries) {
-    if (!entry.isDirectory()) continue;
+  try {
+    const entries = await fs.readdir(WORKSPACE_ROOT, { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isDirectory() || !entry.name.endsWith("-module")) continue;
+      sources.push({
+        manifestPath: path.join(WORKSPACE_ROOT, entry.name, "manifest.json"),
+        modulePath: path.join(WORKSPACE_ROOT, entry.name),
+      });
+    }
+  } catch {
+    // ignore inaccessible workspace root
+  }
 
-    const manifestPath = path.join(EXTERNAL_MODULES_DIR, entry.name, "manifest.json");
+  return sources;
+}
+
+/**
+ * Scans disk-backed external module sources and registers every discovered
+ * module in the kernel registry. Called once during `bootstrapApp()`.
+ */
+export async function loadExternalModules(): Promise<void> {
+  const sources = await collectModuleSources();
+  const seen = new Set<string>();
+
+  for (const source of sources) {
+    const manifestPath = source.manifestPath;
 
     try {
       const raw  = await fs.readFile(manifestPath, "utf-8");
       const manifest = JSON.parse(raw) as ModuleManifest;
 
       if (!manifest.name) {
-        console.warn(`[external-modules] Skipping ${entry.name}: manifest.name missing`);
+        console.warn(`[external-modules] Skipping ${source.modulePath}: manifest.name missing`);
         continue;
       }
+
+      if (seen.has(manifest.name)) {
+        continue;
+      }
+      seen.add(manifest.name);
 
       // Register in the kernel registry (if not already present)
       if (!moduleRegistry.has(manifest.name)) {
         moduleRegistry.register(
           manifest,
-          path.join(EXTERNAL_MODULES_DIR, entry.name),
+          source.modulePath,
           "discovered",
         );
       }
@@ -60,7 +97,7 @@ export async function loadExternalModules(): Promise<void> {
 
       console.log(`[external-modules] Loaded "${manifest.name}" v${manifest.version}`);
     } catch (err) {
-      console.error(`[external-modules] Failed to load "${entry.name}":`, err);
+      console.error(`[external-modules] Failed to load "${source.modulePath}":`, err);
     }
   }
 }
@@ -70,27 +107,20 @@ export async function loadExternalModules(): Promise<void> {
  * Used by the marketplace page to display uploaded modules alongside the catalog.
  */
 export async function listExternalModuleManifests(): Promise<ModuleManifest[]> {
-  const manifests: ModuleManifest[] = [];
+  const manifests = new Map<string, ModuleManifest>();
+  const sources = await collectModuleSources();
 
-  let entries: import("node:fs").Dirent[];
-  try {
-    entries = await fs.readdir(EXTERNAL_MODULES_DIR, { withFileTypes: true });
-  } catch {
-    return manifests;
-  }
-
-  for (const entry of entries) {
-    if (!entry.isDirectory()) continue;
+  for (const source of sources) {
     try {
-      const raw = await fs.readFile(
-        path.join(EXTERNAL_MODULES_DIR, entry.name, "manifest.json"),
-        "utf-8",
-      );
-      manifests.push(JSON.parse(raw) as ModuleManifest);
+      const raw = await fs.readFile(source.manifestPath, "utf-8");
+      const manifest = JSON.parse(raw) as ModuleManifest;
+      if (manifest.name && !manifests.has(manifest.name)) {
+        manifests.set(manifest.name, manifest);
+      }
     } catch {
       // skip corrupt entries silently
     }
   }
 
-  return manifests;
+  return [...manifests.values()];
 }
