@@ -9,6 +9,7 @@ import {
   HiMiniCube,
   HiMiniFolderOpen,
   HiMiniIdentification,
+  HiMiniPhone,
   HiMiniShieldCheck,
   HiMiniShoppingBag,
   HiMiniUserGroup,
@@ -29,6 +30,7 @@ const iconMap: Record<string, IconType> = {
   ScrollText:       PiScrollDuotone,
   SlidersHorizontal: HiMiniCog6Tooth,
   Store:            HiMiniShoppingBag,
+  Phone:            HiMiniPhone,
 };
 
 export interface SidebarMenuItem {

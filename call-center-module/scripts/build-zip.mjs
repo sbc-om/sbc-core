@@ -41,6 +41,24 @@ if (fs.existsSync(readmePath)) {
   console.log("  + README.md");
 }
 
+const packageJsonPath = path.join(root, "package.json");
+if (fs.existsSync(packageJsonPath)) {
+  zip.addLocalFile(packageJsonPath);
+  console.log("  + package.json");
+}
+
+const tsconfigPath = path.join(root, "tsconfig.json");
+if (fs.existsSync(tsconfigPath)) {
+  zip.addLocalFile(tsconfigPath);
+  console.log("  + tsconfig.json");
+}
+
+const srcDir = path.join(root, "src");
+if (fs.existsSync(srcDir)) {
+  zip.addLocalFolder(srcDir, "src");
+  console.log("  + src/");
+}
+
 zip.writeZip(outputPath);
 
 console.log(`\nPackage built: dist/${outputName}`);

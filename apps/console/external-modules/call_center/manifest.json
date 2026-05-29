@@ -1,8 +1,8 @@
 {
   "name": "call_center",
   "title": "Call Center",
-  "description": "Agent queues, ticket management, SLA routing, and call logging across teams.",
-  "version": "1.0.0",
+  "description": "Omnichannel call center workspace with queues, agents, tickets, call logs, SLA tracking, and operations reporting.",
+  "version": "1.1.0",
   "author": "SBC Team",
   "category": "communication",
   "depends": ["base", "crm"],
@@ -10,7 +10,9 @@
   "conflicts": [],
   "permissions": [
     { "key": "call_center.view", "label": "View call center records" },
+    { "key": "call_center.dashboard.view", "label": "View the call center dashboard" },
     { "key": "call_center.queue.manage", "label": "Manage queues" },
+    { "key": "call_center.agent.view", "label": "View agents" },
     { "key": "call_center.agent.manage", "label": "Manage agents" },
     { "key": "call_center.ticket.create", "label": "Create tickets" },
     { "key": "call_center.ticket.update", "label": "Update tickets" },
@@ -27,12 +29,22 @@
       "order": 25,
       "permission": "call_center.view",
       "children": [
-        { "key": "call_center.queues", "label": "Queues", "href": "/call-center/queues", "order": 1 },
-        { "key": "call_center.tickets", "label": "Tickets", "href": "/call-center/tickets", "order": 2 },
-        { "key": "call_center.calls", "label": "Calls", "href": "/call-center/calls", "order": 3 },
-        { "key": "call_center.reports", "label": "Reports", "href": "/call-center/reports", "order": 4, "permission": "call_center.report.view" }
+        { "key": "call_center.overview", "label": "Overview", "icon": "LayoutDashboard", "href": "/call-center", "order": 1, "permission": "call_center.dashboard.view" },
+        { "key": "call_center.queues", "label": "Queues", "icon": "FolderOpen", "href": "/call-center/queues", "order": 2, "permission": "call_center.queue.manage" },
+        { "key": "call_center.agents", "label": "Agents", "icon": "Users", "href": "/call-center/agents", "order": 3, "permission": "call_center.agent.view" },
+        { "key": "call_center.tickets", "label": "Tickets", "icon": "ScrollText", "href": "/call-center/tickets", "order": 4, "permission": "call_center.view" },
+        { "key": "call_center.calls", "label": "Calls", "icon": "Phone", "href": "/call-center/calls", "order": 5, "permission": "call_center.call.log" },
+        { "key": "call_center.reports", "label": "Reports", "icon": "LayoutDashboard", "href": "/call-center/reports", "order": 6, "permission": "call_center.report.view" }
       ]
     }
+  ],
+  "routes": [
+    { "path": "/call-center", "handler": "@call_center/pages/overview-page", "type": "page", "meta": { "permission": "call_center.dashboard.view" } },
+    { "path": "/call-center/queues", "handler": "@call_center/pages/queues-page", "type": "page", "meta": { "permission": "call_center.queue.manage" } },
+    { "path": "/call-center/agents", "handler": "@call_center/pages/agents-page", "type": "page", "meta": { "permission": "call_center.agent.view" } },
+    { "path": "/call-center/tickets", "handler": "@call_center/pages/tickets-page", "type": "page", "meta": { "permission": "call_center.view" } },
+    { "path": "/call-center/calls", "handler": "@call_center/pages/calls-page", "type": "page", "meta": { "permission": "call_center.call.log" } },
+    { "path": "/call-center/reports", "handler": "@call_center/pages/reports-page", "type": "page", "meta": { "permission": "call_center.report.view" } }
   ],
   "settings": [
     {
@@ -55,6 +67,13 @@
       "type": "boolean",
       "scope": "tenant",
       "default": false
+    },
+    {
+      "key": "call_center.dashboard_refresh_seconds",
+      "label": "Dashboard Refresh Interval (seconds)",
+      "type": "number",
+      "scope": "tenant",
+      "default": 30
     }
   ],
   "events": {

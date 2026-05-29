@@ -1,6 +1,6 @@
 # Call Center Module for SBC Core
 
-Standalone Call Center module — agent queues, tickets, SLA routing, and call logging.
+Standalone Call Center module — agent queues, tickets, SLA routing, call logging, operations reports, and full page source.
 
 ## Package Format
 
@@ -8,8 +8,11 @@ This module follows the SBC Core external module specification.
 A valid `.zip` package must contain:
 
 ```text
-call_center-1.0.0.zip
+call_center-1.1.0.zip
 ├── manifest.json
+├── package.json
+├── tsconfig.json
+├── src/
 └── migrations/
     ├── 0001_*.sql
     ├── 0002_*.sql
@@ -29,14 +32,14 @@ pnpm install
 
 ```bash
 node scripts/build-zip.mjs
-# -> dist/call_center-1.0.0.zip
+# -> dist/call_center-1.1.0.zip
 ```
 
 ### 3. Install in SBC Core
 
 1. Open SBC Core -> Marketplace
 2. Click Upload Module
-3. Drop `dist/call_center-1.0.0.zip`
+3. Drop `dist/call_center-1.1.0.zip`
 4. After upload completes, click Install on the Call Center card
 
 ## Capabilities
@@ -46,6 +49,7 @@ node scripts/build-zip.mjs
 - Ticket intake, assignment, prioritization, and closure tracking
 - Call logging with duration, outcome, and optional recording metadata
 - SLA target tracking for response and resolution workflows
+- Full page source for overview, queues, agents, tickets, calls, and reports
 
 ## Tables Created
 
@@ -55,6 +59,15 @@ node scripts/build-zip.mjs
 | `call_center_agents` | Agent profiles and queue membership |
 | `call_center_tickets` | Support and call follow-up tickets |
 | `call_center_calls` | Call log and outcome history |
+
+## Included Pages
+
+- `/call-center` — operational overview and live KPI summary
+- `/call-center/queues` — queue configuration and SLA profile management
+- `/call-center/agents` — agent roster, availability, and utilization view
+- `/call-center/tickets` — ticket board with backlog and assignment context
+- `/call-center/calls` — inbound / outbound call log and outcomes
+- `/call-center/reports` — SLA, volume, and queue performance reporting
 
 ## Permissions Registered
 
@@ -74,7 +87,9 @@ node scripts/build-zip.mjs
 
 ```text
 Call Center
+├── Overview   /call-center
 ├── Queues     /call-center/queues
+├── Agents     /call-center/agents
 ├── Tickets    /call-center/tickets
 ├── Calls      /call-center/calls
 └── Reports    /call-center/reports
