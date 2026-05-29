@@ -1,5 +1,5 @@
-import { db, auditLogs, users } from "@sbc/database";
-import { desc, eq } from "drizzle-orm";
+import { db, auditLogs } from "@sbc/database";
+import { desc } from "drizzle-orm";
 import { PiScrollDuotone } from "react-icons/pi";
 
 export default async function AuditPage() {
@@ -17,42 +17,51 @@ export default async function AuditPage() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-[1.5rem] border border-border bg-background p-6">
-        <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-muted text-slate-700">
-          <PiScrollDuotone className="h-5 w-5" />
-        </div>
-        <h2 className="text-2xl font-bold tracking-tight text-slate-950">Audit Logs</h2>
-        <p className="mt-2 text-sm text-slate-600">Full trail of all system actions.</p>
+      <div>
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">Audit Log</h1>
+        <p className="mt-1 text-sm text-muted-foreground">A complete trail of all system actions.</p>
       </div>
 
-      <div className="overflow-hidden rounded-[1.25rem] border border-border bg-background">
+      <div className="overflow-hidden rounded-lg border border-border bg-background">
         {logs.length === 0 ? (
-          <div className="p-6">
-            <p className="text-sm text-muted-foreground">No audit entries yet.</p>
+          <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
+            <PiScrollDuotone className="h-8 w-8 text-muted-foreground/40" />
+            <p className="text-sm font-medium text-foreground">No audit entries yet</p>
+            <p className="text-xs text-muted-foreground">Actions performed on the platform will appear here.</p>
           </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="border-b border-border bg-muted/40">
-              <tr>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Action</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Resource</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Resource ID</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Time</th>
-              </tr>
-            </thead>
-            <tbody>
-              {logs.map((log) => (
-                <tr key={log.id} className="border-b border-border last:border-0 hover:bg-muted/20">
-                  <td className="px-4 py-3 font-mono text-xs">{log.action}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{log.resourceType}</td>
-                  <td className="max-w-[160px] truncate px-4 py-3 font-mono text-xs text-muted-foreground">{log.resourceId ?? "Not available"}</td>
-                  <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                    {log.createdAt.toLocaleString()}
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="border-b border-border bg-muted/30">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Action</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Resource</th>
+                  <th className="hidden px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground sm:table-cell">Resource ID</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Time</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {logs.map((log) => (
+                  <tr key={log.id} className="hover:bg-muted/20">
+                    <td className="px-4 py-3">
+                      <span className="inline-block rounded border border-border bg-muted px-2 py-0.5 font-mono text-xs">
+                        {log.action}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{log.resourceType}</td>
+                    <td className="hidden px-4 py-3 sm:table-cell">
+                      <span className="block max-w-[160px] truncate font-mono text-xs text-muted-foreground">
+                        {log.resourceId ?? "—"}
+                      </span>
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
+                      {log.createdAt.toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

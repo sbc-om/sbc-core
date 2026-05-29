@@ -17,7 +17,6 @@ import {
   HiMiniEye,
   HiMiniFolderOpen,
   HiMiniMagnifyingGlass,
-  HiMiniPaperAirplane,
   HiMiniPhoto,
   HiMiniXMark,
   HiMiniTrash,
@@ -33,150 +32,112 @@ import { useConfirm, useToast } from "@/components/system-feedback";
 interface Props {
   initialFiles: FileManagerItem[];
   initialStats: FileManagerStats;
-  canUpload: boolean;
-  canDelete: boolean;
+  canUpload:    boolean;
+  canDelete:    boolean;
 }
 
-function fileIcon(mimeType: string) {
-  if (mimeType.startsWith("image/")) {
-    return <HiMiniPhoto className="h-5 w-5" />;
-  }
-
-  return <HiMiniDocumentText className="h-5 w-5" />;
+function FileIcon({ mimeType }: { mimeType: string }) {
+  if (mimeType.startsWith("image/")) return <HiMiniPhoto className="h-4 w-4" />;
+  return <HiMiniDocumentText className="h-4 w-4" />;
 }
 
 export function FileManager({ initialFiles, initialStats, canUpload, canDelete }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [files, setFiles] = useState(initialFiles);
-  const [stats, setStats] = useState(initialStats);
-  const [query, setQuery] = useState("");
+  const [files, setFiles]               = useState(initialFiles);
+  const [stats, setStats]               = useState(initialStats);
+  const [query, setQuery]               = useState("");
   const [activeFolder, setActiveFolder] = useState("all");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [title, setTitle] = useState("");
-  const [folderInput, setFolderInput] = useState("general");
-  const [moduleName, setModuleName] = useState("");
-  const [tags, setTags] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [dragging, setDragging] = useState(false);
-  const [previewFile, setPreviewFile] = useState<FileManagerItem | null>(null);
+  const [title, setTitle]               = useState("");
+  const [folderInput, setFolderInput]   = useState("general");
+  const [moduleName, setModuleName]     = useState("");
+  const [tags, setTags]                 = useState("");
+  const [loading, setLoading]           = useState(false);
+  const [uploading, setUploading]       = useState(false);
+  const [dragging, setDragging]         = useState(false);
+  const [previewFile, setPreviewFile]   = useState<FileManagerItem | null>(null);
   const deferredQuery = useDeferredValue(query);
   const confirm = useConfirm();
-  const toast = useToast();
+  const toast   = useToast();
 
   const folders = useMemo(() => {
-    return ["all", ...Array.from(new Set(files.map((file) => file.folder))).sort()];
+    return ["all", ...Array.from(new Set(files.map((f) => f.folder))).sort()];
   }, [files]);
 
   async function refresh(nextQuery = deferredQuery, nextFolder = activeFolder) {
     setLoading(true);
-
     try {
       const params = new URLSearchParams();
       if (nextQuery.trim()) params.set("query", nextQuery.trim());
       if (nextFolder !== "all") params.set("folder", nextFolder);
 
-      const response = await fetch(`/api/files?${params.toString()}`, { cache: "no-store" });
-      const payload = await response.json();
-
-      if (!response.ok) {
-        throw new Error(payload.error ?? "Unable to load files");
-      }
-
-      startTransition(() => {
-        setFiles(payload.files);
-        setStats(payload.stats);
-      });
-    } catch (requestError) {
-      toast.error("Catalog refresh failed", requestError instanceof Error ? requestError.message : "Unable to load files");
+      const res  = await fetch(`/api/files?${params.toString()}`, { cache: "no-store" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Unable to load files");
+      startTransition(() => { setFiles(data.files); setStats(data.stats); });
+    } catch (err) {
+      toast.error("Failed to refresh", err instanceof Error ? err.message : "Unable to load files");
     } finally {
       setLoading(false);
     }
   }
 
-  useEffect(() => {
-    void refresh(deferredQuery, activeFolder);
-  }, [deferredQuery, activeFolder]);
+  useEffect(() => { void refresh(deferredQuery, activeFolder); }, [deferredQuery, activeFolder]);
 
-  function selectFiles(nextFiles: File[]) {
-    setSelectedFiles(nextFiles);
-    if (nextFiles.length > 1) {
-      setTitle("");
-    }
-    if (nextFiles.length === 1 && !title.trim()) {
-      setTitle(nextFiles[0]?.name.replace(/\.[^.]+$/, "") ?? "");
-    }
+  function selectFiles(next: File[]) {
+    setSelectedFiles(next);
+    if (next.length === 1 && !title.trim()) setTitle(next[0]?.name.replace(/\.[^.]+$/, "") ?? "");
+    if (next.length > 1) setTitle("");
   }
 
-  function onFileInput(event: ChangeEvent<HTMLInputElement>) {
-    selectFiles(Array.from(event.target.files ?? []));
-  }
-
-  function onDrop(event: DragEvent<HTMLButtonElement>) {
-    event.preventDefault();
-    setDragging(false);
-    selectFiles(Array.from(event.dataTransfer.files ?? []));
+  function onFileInput(e: ChangeEvent<HTMLInputElement>) { selectFiles(Array.from(e.target.files ?? [])); }
+  function onDrop(e: DragEvent<HTMLButtonElement>) {
+    e.preventDefault(); setDragging(false);
+    selectFiles(Array.from(e.dataTransfer.files ?? []));
   }
 
   async function upload() {
-    if (!selectedFiles.length) {
-      toast.info("No files selected", "Choose at least one file to upload.");
-      return;
-    }
-
+    if (!selectedFiles.length) { toast.info("No files selected", "Choose at least one file."); return; }
     setUploading(true);
-
     try {
       const body = new FormData();
-      selectedFiles.forEach((file) => body.append("files", file));
+      selectedFiles.forEach((f) => body.append("files", f));
       if (title.trim() && selectedFiles.length === 1) body.set("title", title.trim());
       if (folderInput.trim()) body.set("folder", folderInput.trim());
       if (moduleName.trim()) body.set("moduleName", moduleName.trim());
       if (tags.trim()) body.set("tags", tags.trim());
 
-      const response = await fetch("/api/files", { method: "POST", body });
-      const payload = await response.json();
+      const res  = await fetch("/api/files", { method: "POST", body });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Upload failed");
 
-      if (!response.ok) {
-        throw new Error(payload.error ?? "Unable to upload files");
-      }
-
-      setSelectedFiles([]);
-      setTitle("");
-      if (inputRef.current) {
-        inputRef.current.value = "";
-      }
-
+      setSelectedFiles([]); setTitle("");
+      if (inputRef.current) inputRef.current.value = "";
       await refresh(query, activeFolder);
-      toast.success("Files uploaded", "Your files were added to the catalog.");
-    } catch (requestError) {
-      toast.error("Upload failed", requestError instanceof Error ? requestError.message : "Unable to upload files");
+      toast.success("Uploaded", "Files added to the library.");
+    } catch (err) {
+      toast.error("Upload failed", err instanceof Error ? err.message : "Unable to upload files");
     } finally {
       setUploading(false);
     }
   }
 
   async function remove(id: string) {
-    const accepted = await confirm({
+    const ok = await confirm({
       title: "Delete file?",
-      description: "This removes the file from storage and retires its metadata from the system file manager.",
-      confirmLabel: "Delete file",
+      description: "This removes the file from storage permanently.",
+      confirmLabel: "Delete",
       tone: "danger",
     });
-    if (!accepted) return;
-
+    if (!ok) return;
     try {
-      const response = await fetch(`/api/files/${id}`, { method: "DELETE" });
-      const payload = await response.json();
-
-      if (!response.ok) {
-        throw new Error(payload.error ?? "Unable to delete file");
-      }
-
+      const res  = await fetch(`/api/files/${id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Unable to delete file");
       await refresh(query, activeFolder);
-      toast.success("File deleted", "The file was removed from the system.");
-    } catch (requestError) {
-      toast.error("Delete failed", requestError instanceof Error ? requestError.message : "Unable to delete file");
+      toast.success("Deleted", "File removed from the library.");
+    } catch (err) {
+      toast.error("Delete failed", err instanceof Error ? err.message : "Unable to delete file");
     }
   }
 
@@ -184,49 +145,27 @@ export function FileManager({ initialFiles, initialStats, canUpload, canDelete }
 
   return (
     <>
-      <div className="space-y-6">
-      <section className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-[radial-gradient(circle_at_top_left,_rgba(15,118,110,0.14),_transparent_36%),linear-gradient(135deg,_#ffffff_0%,_#f5fbfa_48%,_#eef8f6_100%)] p-7">
-        <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-3xl">
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-teal-200/80 bg-white/70 text-teal-700 shadow-sm">
-              <HiMiniFolderOpen className="h-6 w-6" />
-            </div>
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-teal-700/80">System Asset Layer</p>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-950">Global File Manager</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
-              Central upload, retrieval, and lifecycle control for files used across modules, operations, and tenant workflows.
-            </p>
+      {/* Stats row */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {[
+          { label: "Files",    value: String(stats.totalFiles) },
+          { label: "Storage",  value: formatFileSize(stats.totalSizeBytes) },
+          { label: "Recent",   value: String(stats.recentUploads) },
+          { label: "Folders",  value: String(stats.folderCount) },
+        ].map((s) => (
+          <div key={s.label} className="rounded-lg border border-border bg-background p-4">
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{s.label}</p>
+            <p className="mt-1.5 text-xl font-semibold text-foreground">{s.value}</p>
           </div>
+        ))}
+      </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-2xl border border-white/70 bg-white/80 px-4 py-4 shadow-sm backdrop-blur">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Files</p>
-              <p className="mt-2 text-2xl font-bold text-slate-950">{stats.totalFiles}</p>
-            </div>
-            <div className="rounded-2xl border border-white/70 bg-white/80 px-4 py-4 shadow-sm backdrop-blur">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Storage</p>
-              <p className="mt-2 text-2xl font-bold text-slate-950">{formatFileSize(stats.totalSizeBytes)}</p>
-            </div>
-            <div className="rounded-2xl border border-white/70 bg-white/80 px-4 py-4 shadow-sm backdrop-blur">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Recent 7d</p>
-              <p className="mt-2 text-2xl font-bold text-slate-950">{stats.recentUploads}</p>
-            </div>
-            <div className="rounded-2xl border border-white/70 bg-white/80 px-4 py-4 shadow-sm backdrop-blur">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Folders</p>
-              <p className="mt-2 text-2xl font-bold text-slate-950">{stats.folderCount}</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="grid gap-6 xl:grid-cols-[1.15fr_1.85fr]">
-        <div className="rounded-[1.5rem] border border-border bg-background p-5">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h2 className="text-lg font-semibold text-slate-950">Upload console</h2>
-              <p className="mt-1 text-sm text-slate-500">Drop one or more files, then attach system metadata before publishing.</p>
-            </div>
-            <span className="rounded-full border border-border bg-muted px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+      <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
+        {/* Upload panel */}
+        <div className="rounded-lg border border-border bg-background p-5">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="text-sm font-semibold text-foreground">Upload Files</h2>
+            <span className={`rounded border px-2 py-0.5 text-xs font-medium ${canUpload ? "border-green-200 bg-green-50 text-green-700" : "border-border bg-muted text-muted-foreground"}`}>
               {canUpload ? "Enabled" : "Read only"}
             </span>
           </div>
@@ -235,232 +174,185 @@ export function FileManager({ initialFiles, initialStats, canUpload, canDelete }
             type="button"
             disabled={!canUpload}
             onClick={() => inputRef.current?.click()}
-            onDragOver={(event) => {
-              event.preventDefault();
-              if (canUpload) setDragging(true);
-            }}
+            onDragOver={(e) => { e.preventDefault(); if (canUpload) setDragging(true); }}
             onDragLeave={() => setDragging(false)}
             onDrop={onDrop}
-            className={`mt-5 flex min-h-52 w-full flex-col items-center justify-center rounded-[1.5rem] border border-dashed px-6 py-10 text-center transition ${dragging ? "border-teal-500 bg-teal-50" : "border-slate-300 bg-slate-50/80"} ${!canUpload ? "cursor-not-allowed opacity-60" : "hover:border-teal-400 hover:bg-teal-50/50"}`}
+            className={`flex min-h-36 w-full flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed px-6 py-8 text-center transition ${
+              dragging
+                ? "border-primary bg-primary/5"
+                : "border-border bg-muted/20 hover:border-primary/50 hover:bg-muted/40"
+            } ${!canUpload ? "cursor-not-allowed opacity-60" : ""}`}
           >
-            <span className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white bg-white text-teal-700 shadow-sm">
-              <HiMiniCloudArrowUp className="h-7 w-7" />
+            <span className="flex h-10 w-10 items-center justify-center rounded-md border border-border bg-background text-muted-foreground">
+              <HiMiniCloudArrowUp className="h-5 w-5" />
             </span>
-            <p className="mt-4 text-base font-semibold text-slate-900">Drag files here or browse from device</p>
-            <p className="mt-2 max-w-sm text-sm leading-6 text-slate-500">
-              Keep shared assets, customer attachments, signed documents, and internal references in one controlled surface.
-            </p>
+            <div>
+              <p className="text-sm font-medium text-foreground">Drop files or click to browse</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">Any file type accepted</p>
+            </div>
           </button>
 
           <input ref={inputRef} type="file" multiple className="hidden" onChange={onFileInput} />
 
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            <label className="space-y-2 text-sm">
-              <span className="font-medium text-slate-700">Display title</span>
-              <input
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                disabled={!canUpload || selectedFiles.length > 1}
-                placeholder="Contract package"
-                className="w-full rounded-xl border border-border bg-background px-3 py-2.5 outline-none transition focus:border-teal-500"
-              />
-            </label>
-
-            <label className="space-y-2 text-sm">
-              <span className="font-medium text-slate-700">Folder</span>
-              <input
-                value={folderInput}
-                onChange={(event) => setFolderInput(event.target.value)}
-                disabled={!canUpload}
-                placeholder="general"
-                className="w-full rounded-xl border border-border bg-background px-3 py-2.5 outline-none transition focus:border-teal-500"
-              />
-            </label>
-
-            <label className="space-y-2 text-sm">
-              <span className="font-medium text-slate-700">Source module</span>
-              <input
-                value={moduleName}
-                onChange={(event) => setModuleName(event.target.value)}
-                disabled={!canUpload}
-                placeholder="crm"
-                className="w-full rounded-xl border border-border bg-background px-3 py-2.5 outline-none transition focus:border-teal-500"
-              />
-            </label>
-
-            <label className="space-y-2 text-sm">
-              <span className="font-medium text-slate-700">Tags</span>
-              <input
-                value={tags}
-                onChange={(event) => setTags(event.target.value)}
-                disabled={!canUpload}
-                placeholder="contract, signed, customer"
-                className="w-full rounded-xl border border-border bg-background px-3 py-2.5 outline-none transition focus:border-teal-500"
-              />
-            </label>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {[
+              { label: "Title",   value: title,       setter: setTitle,       placeholder: "Display title", disabled: selectedFiles.length > 1 },
+              { label: "Folder",  value: folderInput, setter: setFolderInput, placeholder: "general" },
+              { label: "Module",  value: moduleName,  setter: setModuleName,  placeholder: "crm" },
+              { label: "Tags",    value: tags,        setter: setTags,        placeholder: "contract, signed" },
+            ].map(({ label, value, setter, placeholder, disabled }) => (
+              <div key={label}>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">{label}</label>
+                <input
+                  value={value}
+                  onChange={(e) => setter(e.target.value)}
+                  disabled={!canUpload || disabled}
+                  placeholder={placeholder}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20 disabled:opacity-50"
+                />
+              </div>
+            ))}
           </div>
 
-          <div className="mt-5 rounded-2xl border border-border bg-slate-50/80 p-4">
-            <div className="flex items-center justify-between gap-4">
-              <p className="text-sm font-medium text-slate-800">Selected payload</p>
-              <span className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{selectedFiles.length} items</span>
-            </div>
-            <div className="mt-3 space-y-2">
-              {selectedFiles.length === 0 ? (
-                <p className="text-sm text-slate-500">No files queued yet.</p>
-              ) : (
-                selectedFiles.map((file) => (
-                  <div key={`${file.name}-${file.size}`} className="flex items-center justify-between gap-3 rounded-xl border border-white bg-white px-3 py-2.5">
-                    <div className="flex items-center gap-3">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
-                        {fileIcon(file.type || "application/octet-stream")}
-                      </span>
-                      <div>
-                        <p className="text-sm font-medium text-slate-900">{file.name}</p>
-                        <p className="text-xs text-slate-500">{formatFileSize(file.size)}</p>
-                      </div>
+          {selectedFiles.length > 0 && (
+            <div className="mt-4 rounded-md border border-border bg-muted/20 p-3">
+              <p className="mb-2 text-xs font-medium text-muted-foreground">{selectedFiles.length} file(s) selected</p>
+              <div className="space-y-1.5">
+                {selectedFiles.map((f) => (
+                  <div key={`${f.name}-${f.size}`} className="flex items-center gap-2 rounded-md border border-border bg-background px-3 py-2">
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                      <FileIcon mimeType={f.type || "application/octet-stream"} />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-xs font-medium text-foreground">{f.name}</p>
+                      <p className="text-xs text-muted-foreground">{formatFileSize(f.size)}</p>
                     </div>
                   </div>
-                ))
-              )}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
-          <div className="mt-5 flex items-center justify-between gap-4">
-            <p className="text-xs leading-5 text-slate-500">Uploads stay private to authenticated users and are served through permission-checked endpoints.</p>
-            <button
-              type="button"
-              disabled={!canUpload || uploading}
-              onClick={() => void upload()}
-              className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <HiMiniCloudArrowUp className="h-4 w-4" />
-              {uploading ? "Uploading..." : "Upload files"}
-            </button>
-          </div>
+          <button
+            type="button"
+            disabled={!canUpload || uploading || selectedFiles.length === 0}
+            onClick={() => void upload()}
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <HiMiniCloudArrowUp className="h-4 w-4" />
+            {uploading ? "Uploading…" : "Upload"}
+          </button>
         </div>
 
-        <div className="rounded-[1.5rem] border border-border bg-background p-5">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <h2 className="text-lg font-semibold text-slate-950">Asset catalog</h2>
-              <p className="mt-1 text-sm text-slate-500">Search, filter, open, and retire files used across the platform.</p>
-            </div>
-            <div className="flex flex-col gap-3 md:flex-row">
-              <label className="relative block">
-                <HiMiniMagnifyingGlass className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        {/* File list */}
+        <div className="rounded-lg border border-border bg-background p-5">
+          <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="text-sm font-semibold text-foreground">File Library</h2>
+            <div className="flex gap-2">
+              <div className="relative flex-1 sm:flex-none">
+                <HiMiniMagnifyingGlass className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                 <input
                   value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Search by file, folder, or module"
-                  className="w-full rounded-xl border border-border bg-background py-2.5 pl-10 pr-3 outline-none transition focus:border-teal-500 md:w-72"
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search files…"
+                  className="w-full rounded-md border border-input bg-background py-2 pl-9 pr-3 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20 sm:w-52"
                 />
-              </label>
-
+              </div>
               <select
                 value={activeFolder}
-                onChange={(event) => setActiveFolder(event.target.value)}
-                className="rounded-xl border border-border bg-background px-3 py-2.5 outline-none transition focus:border-teal-500"
+                onChange={(e) => setActiveFolder(e.target.value)}
+                className="rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
               >
-                {folders.map((folder) => (
-                  <option key={folder} value={folder}>
-                    {folder === "all" ? "All folders" : folder}
-                  </option>
+                {folders.map((f) => (
+                  <option key={f} value={f}>{f === "all" ? "All folders" : f}</option>
                 ))}
               </select>
             </div>
           </div>
-          <div className="mt-5 space-y-3">
+
+          <div className="space-y-2">
             {loading ? (
-              <div className="rounded-2xl border border-border bg-slate-50 p-10 text-center text-sm text-slate-500">Refreshing catalog...</div>
+              <div className="rounded-lg border border-border bg-muted/20 py-12 text-center text-sm text-muted-foreground">
+                Loading…
+              </div>
             ) : files.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50/70 p-10 text-center">
-                <p className="text-base font-semibold text-slate-900">No files matched the current view.</p>
-                <p className="mt-2 text-sm text-slate-500">Upload a new asset or clear the filters to expand the catalog.</p>
+              <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border py-16 text-center">
+                <HiMiniFolderOpen className="h-8 w-8 text-muted-foreground/40" />
+                <p className="text-sm font-medium text-foreground">No files found</p>
+                <p className="text-xs text-muted-foreground">Upload a file or adjust your filters.</p>
               </div>
             ) : (
               files.map((file) => (
-                <div key={file.id} className="rounded-[1.25rem] border border-border bg-white p-4 shadow-sm transition hover:border-slate-300">
-                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div key={file.id} className="rounded-lg border border-border bg-background p-3 transition hover:bg-muted/20">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex min-w-0 items-start gap-3">
-                      <span className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-border bg-slate-50 text-slate-600">
-                        {fileIcon(file.mimeType)}
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-muted-foreground">
+                        <FileIcon mimeType={file.mimeType} />
                       </span>
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="truncate text-sm font-semibold text-slate-950">{file.title}</h3>
-                          <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-600">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <p className="truncate text-sm font-medium text-foreground">{file.title}</p>
+                          <span className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium uppercase text-muted-foreground">
                             {file.extension?.replace(".", "") || "file"}
                           </span>
                         </div>
-                        <p className="mt-1 truncate text-sm text-slate-500">{file.originalName}</p>
+                        <p className="mt-0.5 truncate text-xs text-muted-foreground">{file.originalName}</p>
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          <span className="rounded border border-border bg-muted px-2 py-0.5 text-xs text-muted-foreground">{file.folder}</span>
+                          <span className="rounded border border-border bg-muted px-2 py-0.5 text-xs text-muted-foreground">{formatFileSize(file.sizeBytes)}</span>
+                          {file.moduleName && (
+                            <span className="rounded border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700">{file.moduleName}</span>
+                          )}
+                          {file.tags.map((tag) => (
+                            <span key={tag} className="rounded border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">#{tag}</span>
+                          ))}
+                        </div>
                         {getFilePreviewKind(file.mimeType) === "image" && (
                           <button
                             type="button"
                             onClick={() => setPreviewFile(file)}
-                            className="mt-3 block overflow-hidden rounded-2xl border border-border bg-slate-50 transition hover:border-teal-300"
+                            className="mt-2 block overflow-hidden rounded-md border border-border"
                           >
-                            <img
-                              src={`/api/files/${file.id}`}
-                              alt={file.title}
-                              className="h-24 w-40 object-cover"
-                            />
+                            <img src={`/api/files/${file.id}`} alt={file.title} className="h-20 w-32 object-cover" />
                           </button>
                         )}
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          <span className="rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-medium text-slate-600">Folder: {file.folder}</span>
-                          {file.moduleName && (
-                            <span className="rounded-full border border-teal-100 bg-teal-50 px-2.5 py-1 text-xs font-medium text-teal-700">Module: {file.moduleName}</span>
-                          )}
-                          {file.tags.map((tag) => (
-                            <span key={tag} className="rounded-full border border-amber-100 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
-                              #{tag}
-                            </span>
-                          ))}
-                        </div>
                       </div>
                     </div>
 
-                    <div className="flex flex-col gap-3 lg:items-end">
-                      <div className="text-sm text-slate-500">
-                        <p>{formatFileSize(file.sizeBytes)}</p>
-                        <p>{new Date(file.createdAt).toLocaleString()}</p>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
+                    <div className="flex shrink-0 flex-wrap gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setPreviewFile(file)}
+                        className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-border px-2.5 py-1.5 text-xs font-medium transition hover:bg-muted"
+                      >
+                        <HiMiniEye className="h-3.5 w-3.5" />
+                        Preview
+                      </button>
+                      <a
+                        href={`/api/files/${file.id}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-border px-2.5 py-1.5 text-xs font-medium transition hover:bg-muted"
+                      >
+                        Open
+                      </a>
+                      <a
+                        href={`/api/files/${file.id}?download=1`}
+                        className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-border px-2.5 py-1.5 text-xs font-medium transition hover:bg-muted"
+                      >
+                        <HiMiniArrowDownTray className="h-3.5 w-3.5" />
+                        Download
+                      </a>
+                      {canDelete && (
                         <button
                           type="button"
-                          onClick={() => setPreviewFile(file)}
-                          className="inline-flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-muted"
+                          onClick={() => void remove(file.id)}
+                          className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-rose-200 px-2.5 py-1.5 text-xs font-medium text-rose-600 transition hover:bg-rose-50"
                         >
-                          <HiMiniEye className="h-4 w-4" />
-                          Preview
+                          <HiMiniTrash className="h-3.5 w-3.5" />
+                          Delete
                         </button>
-                        <a
-                          href={`/api/files/${file.id}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-muted"
-                        >
-                          Open
-                        </a>
-                        <a
-                          href={`/api/files/${file.id}?download=1`}
-                          className="inline-flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-muted"
-                        >
-                          <HiMiniArrowDownTray className="h-4 w-4" />
-                          Download
-                        </a>
-                        {canDelete && (
-                          <button
-                            type="button"
-                            onClick={() => void remove(file.id)}
-                            className="inline-flex items-center gap-2 rounded-xl border border-rose-200 px-3 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-50"
-                          >
-                            <HiMiniTrash className="h-4 w-4" />
-                            Delete
-                          </button>
-                        )}
-                      </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -468,127 +360,112 @@ export function FileManager({ initialFiles, initialStats, canUpload, canDelete }
             )}
           </div>
         </div>
-      </section>
       </div>
 
+      {/* Preview modal */}
       {previewFile && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4">
           <button
             type="button"
             onClick={() => setPreviewFile(null)}
-            className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             aria-label="Close preview"
           />
 
-          <div className="relative z-10 flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-950 text-white shadow-2xl">
-            <div className="flex items-start justify-between gap-4 border-b border-white/10 px-6 py-5">
+          <div className="relative z-10 flex w-full max-h-[92vh] flex-col overflow-hidden rounded-t-lg border border-white/10 bg-slate-950 text-white shadow-2xl sm:max-w-5xl sm:rounded-lg">
+            {/* Header */}
+            <div className="flex shrink-0 items-center justify-between gap-4 border-b border-white/10 px-5 py-4">
               <div className="min-w-0">
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-teal-300">Preview</p>
-                <h2 className="mt-2 truncate text-xl font-semibold">{previewFile.title}</h2>
-                <p className="mt-1 truncate text-sm text-slate-300">{previewFile.originalName}</p>
+                <p className="truncate text-sm font-semibold text-white">{previewFile.title}</p>
+                <p className="truncate text-xs text-slate-400">{previewFile.originalName} · {formatFileSize(previewFile.sizeBytes)}</p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 <a
                   href={`/api/files/${previewFile.id}?download=1`}
-                  className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/10"
+                  className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-white/10"
                 >
-                  <HiMiniArrowDownTray className="h-4 w-4" />
+                  <HiMiniArrowDownTray className="h-3.5 w-3.5" />
                   Download
-                </a>
-                <a
-                  href={`/api/files/${previewFile.id}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/10"
-                >
-                  <HiMiniPaperAirplane className="h-4 w-4" />
-                  Open tab
                 </a>
                 <button
                   type="button"
                   onClick={() => setPreviewFile(null)}
-                  className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm font-medium text-white transition hover:bg-white/10"
+                  className="flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-white/5 text-white transition hover:bg-white/10"
+                  aria-label="Close"
                 >
                   <HiMiniXMark className="h-4 w-4" />
-                  Close
                 </button>
               </div>
             </div>
 
-            <div className="grid flex-1 gap-0 lg:grid-cols-[1.8fr_0.8fr]">
-              <div className="min-h-[26rem] bg-slate-900">
+            {/* Body */}
+            <div className="flex flex-1 overflow-hidden">
+              <div className="flex min-h-[300px] flex-1 items-center justify-center bg-slate-900">
                 {previewKind === "image" && (
-                  <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(20,184,166,0.22),_transparent_35%),linear-gradient(180deg,_rgba(15,23,42,0.96),_rgba(2,6,23,1))] p-6">
-                    <img
-                      src={`/api/files/${previewFile.id}`}
-                      alt={previewFile.title}
-                      className="max-h-[72vh] rounded-2xl object-contain shadow-2xl"
-                    />
-                  </div>
+                  <img
+                    src={`/api/files/${previewFile.id}`}
+                    alt={previewFile.title}
+                    className="max-h-[60vh] rounded-md object-contain"
+                  />
                 )}
-
                 {previewKind === "pdf" && (
                   <iframe
                     src={`/api/files/${previewFile.id}`}
                     title={previewFile.title}
-                    className="h-[72vh] w-full bg-white"
+                    className="h-[60vh] w-full bg-white"
                   />
                 )}
-
                 {!previewKind && (
-                  <div className="flex h-full items-center justify-center p-8">
-                    <div className="max-w-md rounded-[1.5rem] border border-white/10 bg-white/5 p-8 text-center">
-                      <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-slate-200">
-                        <HiMiniDocumentText className="h-7 w-7" />
-                      </span>
-                      <h3 className="mt-4 text-lg font-semibold text-white">Preview not available</h3>
-                      <p className="mt-2 text-sm leading-6 text-slate-300">
-                        This file type cannot be rendered inline yet. Open it in a new tab or download it from the actions on the right.
-                      </p>
-                    </div>
+                  <div className="text-center">
+                    <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-md border border-white/10 bg-white/5 text-slate-400">
+                      <HiMiniDocumentText className="h-6 w-6" />
+                    </span>
+                    <p className="mt-3 text-sm font-medium text-white">Preview not available</p>
+                    <p className="mt-1 text-xs text-slate-400">Download or open in a new tab.</p>
                   </div>
                 )}
               </div>
 
-              <aside className="border-t border-white/10 bg-slate-950/90 p-6 lg:border-l lg:border-t-0">
-                <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-400">Metadata</h3>
-                <div className="mt-5 space-y-4 text-sm">
-                  <div>
-                    <p className="text-slate-400">Type</p>
-                    <p className="mt-1 font-medium text-white">{previewFile.mimeType}</p>
-                  </div>
-                  <div>
-                    <p className="text-slate-400">Size</p>
-                    <p className="mt-1 font-medium text-white">{formatFileSize(previewFile.sizeBytes)}</p>
-                  </div>
-                  <div>
-                    <p className="text-slate-400">Folder</p>
-                    <p className="mt-1 font-medium text-white">{previewFile.folder}</p>
-                  </div>
-                  <div>
-                    <p className="text-slate-400">Module</p>
-                    <p className="mt-1 font-medium text-white">{previewFile.moduleName ?? "System"}</p>
-                  </div>
-                  <div>
-                    <p className="text-slate-400">Uploaded</p>
-                    <p className="mt-1 font-medium text-white">{new Date(previewFile.createdAt).toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-slate-400">Tags</p>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {previewFile.tags.length === 0 ? (
-                        <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-slate-300">No tags</span>
-                      ) : (
-                        previewFile.tags.map((tag) => (
-                          <span key={tag} className="rounded-full border border-teal-400/20 bg-teal-400/10 px-2.5 py-1 text-xs font-medium text-teal-200">
-                            #{tag}
-                          </span>
-                        ))
-                      )}
+              <aside className="hidden w-56 shrink-0 border-l border-white/10 bg-slate-950 p-5 lg:block">
+                <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-slate-400">Details</h3>
+                <div className="space-y-4 text-sm">
+                  {[
+                    { label: "Type",    value: previewFile.mimeType },
+                    { label: "Size",    value: formatFileSize(previewFile.sizeBytes) },
+                    { label: "Folder",  value: previewFile.folder },
+                    { label: "Module",  value: previewFile.moduleName ?? "System" },
+                    { label: "Uploaded", value: new Date(previewFile.createdAt).toLocaleDateString() },
+                  ].map(({ label, value }) => (
+                    <div key={label}>
+                      <p className="text-xs text-slate-400">{label}</p>
+                      <p className="mt-0.5 text-xs font-medium text-white break-all">{value}</p>
                     </div>
-                  </div>
+                  ))}
+                  {previewFile.tags.length > 0 && (
+                    <div>
+                      <p className="text-xs text-slate-400">Tags</p>
+                      <div className="mt-1.5 flex flex-wrap gap-1">
+                        {previewFile.tags.map((tag) => (
+                          <span key={tag} className="rounded border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-slate-300">#{tag}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </aside>
+            </div>
+
+            {/* Footer */}
+            <div className="flex shrink-0 items-center justify-between border-t border-white/10 px-5 py-3">
+              <p className="text-xs text-slate-400">{previewFile.mimeType}</p>
+              <a
+                href={`/api/files/${previewFile.id}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-white/10"
+              >
+                Open in new tab
+              </a>
             </div>
           </div>
         </div>

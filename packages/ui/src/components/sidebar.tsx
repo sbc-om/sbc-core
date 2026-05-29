@@ -10,6 +10,7 @@ import {
   HiMiniFolderOpen,
   HiMiniShieldCheck,
   HiMiniUserGroup,
+  HiMiniXMark,
 } from "react-icons/hi2";
 import { PiScrollDuotone } from "react-icons/pi";
 import type { IconType } from "react-icons";
@@ -36,9 +37,9 @@ export interface SidebarMenuItem {
 }
 
 interface SidebarItemProps {
-  item:        SidebarMenuItem;
-  depth?:      number;
-  pathname?:   string | undefined;
+  item:           SidebarMenuItem;
+  depth?:         number;
+  pathname?:      string | undefined;
   LinkComponent?: React.ComponentType<{ href: string; className?: string; children: React.ReactNode }> | undefined;
 }
 
@@ -50,8 +51,8 @@ function SidebarItem({ item, depth = 0, pathname, LinkComponent }: SidebarItemPr
   const Icon = item.icon ? iconMap[item.icon] : undefined;
 
   const itemClass = cn(
-    "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-sidebar-foreground",
-    "transition-colors duration-200 hover:bg-sidebar-accent/70 hover:text-sidebar-accent-foreground",
+    "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-sidebar-foreground",
+    "transition-colors duration-150 hover:bg-sidebar-accent/70 hover:text-sidebar-accent-foreground",
     isActive && "bg-sidebar-accent text-sidebar-accent-foreground font-semibold",
     depth === 0 && !isActive && "font-medium"
   );
@@ -60,11 +61,11 @@ function SidebarItem({ item, depth = 0, pathname, LinkComponent }: SidebarItemPr
     <>
       <span
         className={cn(
-          "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-base text-sidebar-foreground/80",
+          "flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-white/10 bg-white/5 text-sm text-sidebar-foreground/80",
           isActive && "border-white/20 bg-white/10 text-sidebar-accent-foreground"
         )}
       >
-        {Icon ? <Icon className="h-5 w-5" /> : <HiMiniCube className="h-5 w-5" />}
+        {Icon ? <Icon className="h-4 w-4" /> : <HiMiniCube className="h-4 w-4" />}
       </span>
       <span className="flex-1 truncate text-left leading-tight">{item.label}</span>
     </>
@@ -72,7 +73,6 @@ function SidebarItem({ item, depth = 0, pathname, LinkComponent }: SidebarItemPr
 
   return (
     <li>
-      {/* Accordion toggle for parent items */}
       {hasChildren ? (
         <button
           onClick={() => setExpanded((p) => !p)}
@@ -81,11 +81,10 @@ function SidebarItem({ item, depth = 0, pathname, LinkComponent }: SidebarItemPr
         >
           {Label}
           {expanded
-            ? <HiChevronDown className="h-4 w-4 shrink-0 opacity-70" />
-            : <HiChevronRight className="h-4 w-4 shrink-0 opacity-70" />}
+            ? <HiChevronDown className="h-3.5 w-3.5 shrink-0 opacity-60" />
+            : <HiChevronRight className="h-3.5 w-3.5 shrink-0 opacity-60" />}
         </button>
       ) : item.href ? (
-        /* Leaf items with href — use LinkComponent or plain <a> */
         LinkComponent ? (
           <LinkComponent href={item.href} className={cn(itemClass, "block")} >
             <span style={{ paddingLeft: paddingLeft }} className="flex w-full items-center gap-3">
@@ -102,13 +101,11 @@ function SidebarItem({ item, depth = 0, pathname, LinkComponent }: SidebarItemPr
           </a>
         )
       ) : (
-        /* Label-only, no href, no children */
         <span style={{ paddingLeft }} className={cn(itemClass, "cursor-default opacity-60")}>
           {Label}
         </span>
       )}
 
-      {/* Children */}
       {hasChildren && expanded && (
         <ul>
           {item.children
@@ -133,26 +130,36 @@ export interface SidebarProps {
   appName?:       string;
   pathname?:      string | undefined;
   className?:     string;
+  onClose?:       () => void;
   LinkComponent?: React.ComponentType<{ href: string; className?: string; children: React.ReactNode }> | undefined;
 }
 
-export function Sidebar({ menus, appName = "SBC", pathname, LinkComponent, className }: SidebarProps) {
+export function Sidebar({ menus, appName = "SBC", pathname, LinkComponent, className, onClose }: SidebarProps) {
   return (
-    <aside className={cn("flex h-full w-72 flex-col border-r border-sidebar-border bg-sidebar", className)}>
-      <div className="border-b border-sidebar-border px-5 py-5">
-        <div className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-sidebar-foreground">
-            <HiMiniChartBar className="h-6 w-6" />
+    <aside className={cn("flex h-full w-64 flex-col border-r border-sidebar-border bg-sidebar", className)}>
+      <div className="flex items-center justify-between border-b border-sidebar-border px-4 py-3">
+        <div className="flex items-center gap-2.5">
+          <span className="flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-white/5 text-sidebar-foreground">
+            <HiMiniChartBar className="h-4 w-4" />
           </span>
           <div>
-            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-sidebar-foreground/50">Control Center</p>
-            <span className="text-lg font-semibold text-sidebar-foreground">{appName}</span>
+            <p className="text-[0.6rem] font-semibold uppercase tracking-[0.2em] text-sidebar-foreground/40">Platform</p>
+            <span className="text-sm font-semibold leading-none text-sidebar-foreground">{appName}</span>
           </div>
         </div>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="flex h-7 w-7 items-center justify-center rounded-md text-sidebar-foreground/50 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground lg:hidden"
+            aria-label="Close sidebar"
+          >
+            <HiMiniXMark className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
-      <nav className="flex-1 overflow-y-auto p-3">
-        <ul className="space-y-2">
+      <nav className="flex-1 overflow-y-auto p-2">
+        <ul className="space-y-0.5">
           {menus
             .sort((a, b) => a.order - b.order)
             .map((item) => (

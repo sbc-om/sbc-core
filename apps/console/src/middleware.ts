@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 // Must match SESSION_COOKIE in src/lib/session.ts
 const SESSION_COOKIE = "sbc_session";
 
-const PUBLIC_PATHS = ["/login", "/api/health", "/_next", "/favicon.ico"];
+const PUBLIC_PATHS = ["/login", "/api/auth", "/api/health", "/_next", "/favicon.ico"];
 
 function isPublic(pathname: string): boolean {
   return PUBLIC_PATHS.some((p) => pathname.startsWith(p));

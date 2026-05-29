@@ -10,83 +10,89 @@ export default async function UsersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4 rounded-[1.5rem] border border-border bg-background p-6">
+      <div className="flex items-center justify-between gap-4">
         <div>
-          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-muted text-slate-700">
-            <HiMiniUserGroup className="h-5 w-5" />
-          </div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-950">Users</h2>
-          <p className="mt-2 text-sm text-slate-600">Manage platform users and access.</p>
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">Users</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Manage platform users and their access.</p>
         </div>
         <CreateUserDialog />
       </div>
 
-      <div className="overflow-hidden rounded-[1.25rem] border border-border bg-background">
+      <div className="overflow-hidden rounded-lg border border-border bg-background">
         {users.length === 0 ? (
-          <div className="p-8 text-center">
-            <p className="text-muted-foreground text-sm">No users yet. Create the first one.</p>
+          <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
+            <HiMiniUserGroup className="h-8 w-8 text-muted-foreground/40" />
+            <p className="text-sm font-medium text-foreground">No users yet</p>
+            <p className="text-xs text-muted-foreground">Create the first user to get started.</p>
           </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="border-b border-border bg-muted/40">
-              <tr>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Name</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Email</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Last Login</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Created</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr key={user.id} className="border-b border-border last:border-0 hover:bg-muted/20">
-                  <td className="px-4 py-3 font-medium">
-                    <div className="flex items-center gap-3">
-                      {extractDocumentId(user.avatarUrl) ? (
-                        <img
-                          src={buildDocumentUrl(extractDocumentId(user.avatarUrl)!, {
-                            resourceModule: "iam",
-                            resourceType: "user",
-                            resourceId: user.id,
-                            fieldName: "avatar",
-                          })}
-                          alt={user.name}
-                          className="h-10 w-10 rounded-full object-cover"
-                        />
-                      ) : (
-                        <span className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-muted text-xs font-semibold text-slate-700">
-                          {user.name.charAt(0).toUpperCase()}
-                        </span>
-                      )}
-                      <span>
-                        {user.name}
-                      </span>
-                    </div>
-                    {user.isSuperAdmin && (
-                      <span className="ml-2 rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-800">Super Admin</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">{user.email}</td>
-                  <td className="px-4 py-3">
-                    <ToggleActiveButton id={user.id} isActive={user.isActive} />
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                    {user.lastLoginAt ? user.lastLoginAt.toLocaleDateString() : "Not available"}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                    {user.createdAt.toLocaleDateString()}
-                  </td>
-                  <td className="px-4 py-3">
-                    <Link href={`/users/${user.id}`} className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
-                      Manage
-                      <HiArrowRight className="h-4 w-4" />
-                    </Link>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="border-b border-border bg-muted/30">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">User</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Email</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">Status</th>
+                  <th className="hidden px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground md:table-cell">Last Login</th>
+                  <th className="hidden px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground sm:table-cell">Created</th>
+                  <th className="px-4 py-3" />
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {users.map((user) => (
+                  <tr key={user.id} className="hover:bg-muted/20">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        {extractDocumentId(user.avatarUrl) ? (
+                          <img
+                            src={buildDocumentUrl(extractDocumentId(user.avatarUrl)!, {
+                              resourceModule: "iam",
+                              resourceType: "user",
+                              resourceId: user.id,
+                              fieldName: "avatar",
+                            })}
+                            alt={user.name}
+                            className="h-8 w-8 rounded-full object-cover"
+                          />
+                        ) : (
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-xs font-semibold text-muted-foreground">
+                            {user.name.charAt(0).toUpperCase()}
+                          </span>
+                        )}
+                        <div>
+                          <p className="font-medium text-foreground">{user.name}</p>
+                          {user.isSuperAdmin && (
+                            <span className="inline-block rounded border border-purple-200 bg-purple-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-purple-700">
+                              Super Admin
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-muted-foreground">{user.email}</td>
+                    <td className="px-4 py-3">
+                      <ToggleActiveButton id={user.id} isActive={user.isActive} />
+                    </td>
+                    <td className="hidden whitespace-nowrap px-4 py-3 text-muted-foreground md:table-cell">
+                      {user.lastLoginAt ? user.lastLoginAt.toLocaleDateString() : "Never"}
+                    </td>
+                    <td className="hidden whitespace-nowrap px-4 py-3 text-muted-foreground sm:table-cell">
+                      {user.createdAt.toLocaleDateString()}
+                    </td>
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/users/${user.id}`}
+                        className="inline-flex items-center gap-1 whitespace-nowrap text-xs font-medium text-primary hover:underline"
+                      >
+                        Manage
+                        <HiArrowRight className="h-3.5 w-3.5" />
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>
