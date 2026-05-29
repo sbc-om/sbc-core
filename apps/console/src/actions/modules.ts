@@ -1,5 +1,6 @@
 "use server";
 
+import path from "node:path";
 import { revalidatePath } from "next/cache";
 import { installModule, uninstallModule, moduleRegistry } from "@sbc/kernel";
 import { bootstrapApp, SYSTEM_TENANT_ID } from "@/lib/bootstrap";
@@ -14,7 +15,14 @@ export async function installModuleAction(name: string): Promise<{ error?: strin
     if (entry.state === "installed") {
       return { error: `Module "${name}" is already installed.` };
     }
-    await installModule(entry.manifest, { tenantId: SYSTEM_TENANT_ID });
+
+    // For external modules (on disk), pass the migrations directory so the
+    // kernel runs their .sql migration files during install.
+    const migrationsDir = entry.path
+      ? path.join(entry.path, "migrations")
+      : undefined;
+
+    await installModule(entry.manifest, { tenantId: SYSTEM_TENANT_ID, migrationsDir });
     revalidatePath("/marketplace");
     revalidatePath("/modules");
     return {};

@@ -1,5 +1,6 @@
 import { db, modules } from "@sbc/database";
 import { eq, and, desc, isNull } from "drizzle-orm";
+import path from "node:path";
 import type { ModuleManifest } from "@sbc/sdk";
 import type { ModuleState } from "@sbc/database";
 import { moduleRegistry } from "./registry";
@@ -8,6 +9,7 @@ import { registerMenus, deregisterMenus } from "./menus";
 import { registerPermissions, deregisterPermissions } from "@sbc/rbac";
 import { eventBus } from "@sbc/events";
 import { defineEvent } from "@sbc/sdk";
+import { runSqlFileMigrations } from "./sql-migrations";
 import { z } from "zod";
 
 const moduleInstalledEvent = defineEvent({
@@ -58,7 +60,7 @@ async function findLatestModuleRecord(moduleName: string, tenantId?: string) {
 
 export async function installModule(
   manifest: ModuleManifest,
-  options?: { tenantId?: string; installDemoData?: boolean }
+  options?: { tenantId?: string; installDemoData?: boolean; migrationsDir?: string }
 ): Promise<void> {
   const allManifests = moduleRegistry.getAll().map((e) => e.manifest);
   const installOrder = topologicalSort(allManifests, [manifest.name]);
@@ -94,6 +96,17 @@ export async function installModule(
       }
 
       await setState(moduleName, "installing", tenantId);
+
+      // Run SQL file migrations for external modules
+      const migrationsDir =
+        options?.migrationsDir ??
+        (moduleRegistry.get(moduleName)?.path
+          ? path.join(moduleRegistry.get(moduleName)!.path, "migrations")
+          : undefined);
+
+      if (migrationsDir) {
+        await runSqlFileMigrations(moduleName, migrationsDir);
+      }
 
       if (mod.permissions?.length) {
         await registerPermissions(moduleName, mod.permissions);

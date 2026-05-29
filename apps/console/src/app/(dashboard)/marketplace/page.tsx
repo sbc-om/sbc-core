@@ -2,7 +2,8 @@ import { db, modules as modulesTable } from "@sbc/database";
 import { MarketplaceClient } from "./_components/marketplace-client";
 import { SyncMenusButton } from "@/components/sync-menus-button";
 import { CATALOG } from "./_data/catalog";
-import type { CatalogStatus } from "./_data/catalog";
+import { listExternalModuleManifests } from "@/lib/external-modules";
+import type { CatalogStatus, CatalogModule } from "./_data/catalog";
 import type { ModuleState } from "@sbc/database";
 
 const CORE_MODULES = new Set(["base", "iam"]);
@@ -32,23 +33,78 @@ function resolveStatus(
 }
 
 export default async function MarketplacePage() {
-  const dbRows = await db.select({
-    name:             modulesTable.name,
-    state:            modulesTable.state,
-    installedVersion: modulesTable.installedVersion,
-  }).from(modulesTable);
+  const [dbRows, externalManifests] = await Promise.all([
+    db.select({
+      name:             modulesTable.name,
+      state:            modulesTable.state,
+      installedVersion: modulesTable.installedVersion,
+    }).from(modulesTable),
+    listExternalModuleManifests(),
+  ]);
 
   const dbMap = new Map(dbRows.map((r) => [r.name, r]));
 
-  const entries = CATALOG.map((mod) => {
-    const row    = dbMap.get(mod.name);
-    const status = resolveStatus(mod, (row?.state ?? null) as ModuleState | null);
-    return {
-      module:           mod,
-      status,
-      installedVersion: row?.installedVersion ?? null,
-    };
-  });
+  // ── Build external entries (uploaded via ZIP) ──────────────────────────────
+  // An external module overrides a catalog entry when the catalog entry is
+  // not yet installable (coming_soon). This lets community ZIPs unlock modules
+  // that are listed in the catalog but not yet released by SBC.
+  const externalOverrideNames = new Set(
+    externalManifests
+      .filter((m) => {
+        const cat = CATALOG.find((c) => c.name === m.name);
+        return !cat || !cat.installable; // override only non-installable (coming_soon) entries
+      })
+      .map((m) => m.name),
+  );
+
+  // ── Build catalog entries ──────────────────────────────────────────────────
+  const catalogEntries = CATALOG
+    .filter((mod) => !externalOverrideNames.has(mod.name)) // skip entries replaced by external
+    .map((mod) => {
+      const row    = dbMap.get(mod.name);
+      const status = resolveStatus(mod, (row?.state ?? null) as ModuleState | null);
+      return {
+        module:           mod,
+        status,
+        installedVersion: row?.installedVersion ?? null,
+        isExternal:       false,
+      };
+    });
+
+  const externalEntries = externalManifests
+    .filter((m) => {
+      const cat = CATALOG.find((c) => c.name === m.name);
+      return !cat || !cat.installable; // include external if not in catalog OR catalog is coming_soon
+    })
+    .map((m) => {
+      const row    = dbMap.get(m.name);
+      const status = resolveStatus({ name: m.name, installable: m.installable !== false }, (row?.state ?? null) as ModuleState | null);
+
+      const mod: CatalogModule = {
+        name:          m.name,
+        title:         m.title,
+        description:   m.description ?? "",
+        category:      (m.category as string) ?? "operations",
+        categoryLabel: (m.category as string) ?? "Operations",
+        icon:          "puzzle",
+        version:       m.version,
+        author:        m.author ?? "Community",
+        pricing:       "free",
+        depends:       m.depends ?? [],
+        tags:          ["external", m.category as string].filter(Boolean),
+        featured:      false,
+        installable:   m.installable !== false,
+      };
+
+      return {
+        module:           mod,
+        status,
+        installedVersion: row?.installedVersion ?? null,
+        isExternal:       true,
+      };
+    });
+
+  const entries = [...catalogEntries, ...externalEntries];
 
   const installed  = entries.filter((e) => e.status === "installed" || e.status === "core").length;
   const available  = entries.filter((e) => e.status === "available").length;

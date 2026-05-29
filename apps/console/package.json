@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
+    "adm-zip": "^0.5.16",
     "class-variance-authority": "^0.7.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
@@ -29,9 +30,11 @@
     "next": "15.3.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-icons": "^5.5.0"
+    "react-icons": "^5.5.0",
+    "zod": "^3.25.23"
   },
   "devDependencies": {
+    "@types/adm-zip": "^0.5.5",
     "@sbc/config": "workspace:*",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20.19.1",

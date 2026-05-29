@@ -1,0 +1,67 @@
+{
+  "name": "crm",
+  "title": "CRM",
+  "description": "Manage customers, leads, and sales pipelines from one unified workspace.",
+  "version": "1.0.0",
+  "author": "SBC Community",
+  "category": "sales",
+  "depends": ["base"],
+  "optional_depends": [],
+  "conflicts": [],
+  "permissions": [
+    { "key": "crm.view",             "label": "View CRM records" },
+    { "key": "crm.customer.create",  "label": "Create customers" },
+    { "key": "crm.customer.update",  "label": "Update customers" },
+    { "key": "crm.customer.delete",  "label": "Delete customers" },
+    { "key": "crm.lead.create",      "label": "Create leads" },
+    { "key": "crm.lead.update",      "label": "Update leads" },
+    { "key": "crm.lead.delete",      "label": "Delete leads" },
+    { "key": "crm.lead.convert",     "label": "Convert leads to customers" },
+    { "key": "crm.pipeline.manage",  "label": "Manage sales pipelines" },
+    { "key": "crm.export",           "label": "Export CRM data" }
+  ],
+  "menus": [
+    {
+      "key":        "crm.root",
+      "label":      "CRM",
+      "icon":       "Users",
+      "order":      10,
+      "permission": "crm.view",
+      "children": [
+        { "key": "crm.customers",  "label": "Customers",  "href": "/crm/customers",  "order": 1 },
+        { "key": "crm.leads",      "label": "Leads",      "href": "/crm/leads",      "order": 2 },
+        { "key": "crm.pipelines",  "label": "Pipelines",  "href": "/crm/pipelines",  "order": 3 }
+      ]
+    }
+  ],
+  "settings": [
+    {
+      "key":     "crm.default_currency",
+      "label":   "Default Currency",
+      "type":    "text",
+      "scope":   "tenant",
+      "default": "USD"
+    },
+    {
+      "key":     "crm.lead_expiry_days",
+      "label":   "Lead Expiry (days)",
+      "type":    "number",
+      "scope":   "tenant",
+      "default": 30
+    }
+  ],
+  "events": {
+    "emits": [
+      "crm.customer.created",
+      "crm.customer.updated",
+      "crm.customer.deleted",
+      "crm.lead.created",
+      "crm.lead.converted",
+      "crm.pipeline.stage.changed"
+    ],
+    "listens": []
+  },
+  "auto_install": false,
+  "installable": true,
+  "application": true
+}

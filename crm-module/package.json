@@ -1,0 +1,16 @@
+{
+  "name": "crm-module",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Standalone CRM module for SBC Core — installable via zip",
+  "type": "module",
+  "scripts": {
+    "build:zip": "node scripts/build-zip.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/adm-zip": "^0.5.8",
+    "adm-zip": "^0.5.17",
+    "typescript": "^5.8.3"
+  }
+}

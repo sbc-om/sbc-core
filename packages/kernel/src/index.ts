@@ -8,3 +8,4 @@ export type { MenuTreeItem }                        from "./menus";
 export { audit }                                    from "./audit";
 export type { AuditEntry }                          from "./audit";
 export { getSetting, setSetting, registerSettings } from "./settings";
+export { runSqlFileMigrations }                     from "./sql-migrations";

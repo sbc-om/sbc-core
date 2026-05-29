@@ -2,6 +2,7 @@ import { manifest as baseManifest }      from "@sbc/module-base";
 import { manifest as contactsManifest }  from "@sbc/module-contacts";
 import { manifest as documentsManifest } from "@sbc/module-documents";
 import { manifest as iamManifest }       from "@sbc/module-iam";
+import { loadExternalModules }           from "@/lib/external-modules";
 import {
   moduleRegistry,
   installModule,
@@ -116,6 +117,7 @@ export async function bootstrapApp(): Promise<void> {
     }
   }
 
-  try { await syncCoreMenus(); }    catch (err) { console.error("[sbc] menu sync error:", err); }
-  try { await ensureSuperAdmin(); } catch (err) { console.error("[sbc] admin error:", err); }
+  try { await loadExternalModules(); } catch (err) { console.error("[sbc] external modules error:", err); }
+  try { await syncCoreMenus(); }       catch (err) { console.error("[sbc] menu sync error:", err); }
+  try { await ensureSuperAdmin(); }    catch (err) { console.error("[sbc] admin error:", err); }
 }

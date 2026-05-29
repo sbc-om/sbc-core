@@ -8,6 +8,7 @@ import {
   HiMiniCheckCircle,
   HiMiniCog6Tooth,
   HiMiniCpuChip,
+  HiMiniDocumentArrowUp,
   HiMiniMagnifyingGlass,
   HiMiniPhone,
   HiMiniSparkles,
@@ -16,6 +17,7 @@ import {
   HiMiniXMark,
 } from "react-icons/hi2";
 import { ModuleCard } from "./module-card";
+import { UploadModuleDialog } from "./upload-module-dialog";
 import { CATEGORIES } from "../_data/catalog";
 import type { CatalogModule, CatalogStatus } from "../_data/catalog";
 
@@ -36,6 +38,7 @@ interface MarketplaceEntry {
   module:           CatalogModule;
   status:           CatalogStatus;
   installedVersion: string | null;
+  isExternal?:      boolean;
 }
 
 interface Props {
@@ -46,6 +49,7 @@ interface Props {
 export function MarketplaceClient({ entries, stats }: Props) {
   const [activeCategory, setActiveCategory] = useState("all");
   const [query, setQuery]                   = useState("");
+  const [uploadOpen, setUploadOpen]         = useState(false);
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase().trim();
@@ -66,34 +70,48 @@ export function MarketplaceClient({ entries, stats }: Props) {
   }, [entries, activeCategory, query]);
 
   const installed  = filtered.filter((e) => e.status === "installed" || e.status === "core");
-  const available  = filtered.filter((e) => e.status === "available" || e.status === "error" || e.status === "in_progress");
+  const available  = filtered.filter((e) => (e.status === "available" || e.status === "error" || e.status === "in_progress") && !e.isExternal);
+  const external   = filtered.filter((e) => e.isExternal);
   const comingSoon = filtered.filter((e) => e.status === "coming_soon");
   const isEmpty    = filtered.length === 0;
 
   return (
+    <>
+    <UploadModuleDialog open={uploadOpen} onClose={() => setUploadOpen(false)} />
+
     <div className="space-y-8">
 
       {/* ── Toolbar ─────────────────────────────────────────────────── */}
       <div className="space-y-4">
 
-        {/* Search */}
-        <div className="relative">
-          <HiMiniMagnifyingGlass className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by name, category, or tag…"
-            className="w-full rounded-md border border-input bg-background py-2.5 pl-10 pr-10 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
-          />
-          {query && (
-            <button
-              type="button"
-              onClick={() => setQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            >
-              <HiMiniXMark className="h-4 w-4" />
-            </button>
-          )}
+        {/* Search + Upload */}
+        <div className="flex gap-3">
+          <div className="relative flex-1">
+            <HiMiniMagnifyingGlass className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search by name, category, or tag…"
+              className="w-full rounded-md border border-input bg-background py-2.5 pl-10 pr-10 text-sm outline-none transition focus:border-ring focus:ring-2 focus:ring-ring/20"
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <HiMiniXMark className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => setUploadOpen(true)}
+            className="inline-flex h-[42px] shrink-0 items-center gap-2 rounded-md border border-border bg-background px-4 text-xs font-semibold text-foreground transition-colors hover:bg-muted whitespace-nowrap"
+          >
+            <HiMiniDocumentArrowUp className="h-4 w-4" />
+            Upload Module
+          </button>
         </div>
 
         {/* Category tabs */}
@@ -202,6 +220,23 @@ export function MarketplaceClient({ entries, stats }: Props) {
         </section>
       )}
 
+      {/* ── External (uploaded via ZIP) ───────────────────────────────── */}
+      {external.length > 0 && (
+        <section className="space-y-4">
+          <SectionHeader
+            label="External"
+            count={external.length}
+            countClass="app-badge app-badge-subtle"
+            tooltip="Modules uploaded via .zip package"
+          />
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {external.map((e) => (
+              <ModuleCard key={e.module.name} module={e.module} status={e.status} installedVersion={e.installedVersion} />
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* ── Coming Soon ───────────────────────────────────────────────── */}
       {comingSoon.length > 0 && (
         <section className="space-y-4">
@@ -218,6 +253,7 @@ export function MarketplaceClient({ entries, stats }: Props) {
         </section>
       )}
     </div>
+    </>
   );
 }
 
@@ -226,14 +262,19 @@ function SectionHeader({
   label,
   count,
   countClass,
+  tooltip,
 }: {
   label:       string;
   count:       number;
   countClass:  string;
+  tooltip?:    string;
 }) {
   return (
     <div className="flex items-center gap-3">
-      <h2 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+      <h2
+        className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground"
+        title={tooltip}
+      >
         {label}
       </h2>
       <span className={`tabular-nums ${countClass}`}>
