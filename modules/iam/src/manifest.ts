@@ -4,7 +4,7 @@ export const manifest = defineModule({
   name:        "iam",
   title:       "Identity & Access Management",
   description: "User management, roles, and permission assignment.",
-  version:     "1.0.0",
+  version:     "1.0.1",
   author:      "SBC Team",
   category:    "system",
   depends:     ["base"],
@@ -22,22 +22,7 @@ export const manifest = defineModule({
     { key: "iam.permissions.assign", label: "Assign permissions to roles" },
   ],
 
-  menus: [
-    {
-      key:        "iam.users",
-      label:      "Users",
-      icon:       "Users",
-      href:       "/users",
-      order:      2,
-      permission: "iam.users.view",
-    },
-    {
-      key:        "iam.roles",
-      label:      "Roles & Permissions",
-      icon:       "ShieldCheck",
-      href:       "/roles",
-      order:      3,
-      permission: "iam.roles.view",
-    },
-  ],
+  // Menus are registered by the base module under Administration.
+  // IAM does not register duplicate root-level menu items.
+  menus: [],
 });

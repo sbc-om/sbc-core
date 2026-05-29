@@ -1,7 +1,14 @@
-import { manifest as baseManifest } from "@sbc/module-base";
+import { manifest as baseManifest }      from "@sbc/module-base";
 import { manifest as documentsManifest } from "@sbc/module-documents";
-import { manifest as iamManifest }  from "@sbc/module-iam";
-import { moduleRegistry, installModule } from "@sbc/kernel";
+import { manifest as iamManifest }       from "@sbc/module-iam";
+import {
+  moduleRegistry,
+  installModule,
+  upgradeModule,
+  registerMenus,
+  deregisterMenus,
+} from "@sbc/kernel";
+import { registerPermissions } from "@sbc/rbac";
 import { db, modules, tenants, users } from "@sbc/database";
 import { eq } from "drizzle-orm";
 import { hashPassword } from "@sbc/auth";
@@ -26,9 +33,7 @@ async function ensureSystemTenant(): Promise<void> {
 const ADMIN_EMAIL = "admin@sbc.local";
 
 async function ensureSuperAdmin(): Promise<void> {
-  const existing = await db.query.users.findFirst({
-    where: eq(users.email, ADMIN_EMAIL),
-  });
+  const existing = await db.query.users.findFirst({ where: eq(users.email, ADMIN_EMAIL) });
   if (existing) return;
 
   const passwordHash = await hashPassword("admin123");
@@ -50,8 +55,18 @@ async function ensureInstalled(manifest: ModuleManifest): Promise<void> {
   }
 
   const existing = await db.query.modules.findFirst({ where: eq(modules.name, manifest.name) });
+
   if (existing?.state === "installed") {
     moduleRegistry.setState(manifest.name, "installed");
+
+    const dbVersion = existing.installedVersion ?? existing.version;
+    if (dbVersion && dbVersion !== manifest.version) {
+      moduleRegistry.setInstalledVersion(manifest.name, dbVersion);
+      console.warn(`[sbc] upgrading "${manifest.name}" ${dbVersion} → ${manifest.version}`);
+      await upgradeModule(manifest, dbVersion);
+    } else if (existing.installedVersion) {
+      moduleRegistry.setInstalledVersion(manifest.name, existing.installedVersion);
+    }
     return;
   }
 
@@ -59,13 +74,28 @@ async function ensureInstalled(manifest: ModuleManifest): Promise<void> {
   console.warn(`[sbc] module "${manifest.name}" installed`);
 }
 
+/**
+ * Wipes and re-registers menus + permissions for every core module from the
+ * current manifest. Runs on every cold start so the DB always reflects the
+ * manifests — no manual Sync Menus needed after manifest changes.
+ */
+async function syncCoreMenus(): Promise<void> {
+  for (const manifest of CORE_MODULES) {
+    await deregisterMenus(manifest.name);
+    if (manifest.menus?.length)       await registerMenus(manifest.name, manifest.menus);
+    if (manifest.permissions?.length) await registerPermissions(manifest.name, manifest.permissions);
+  }
+  console.warn("[sbc] core menus synced");
+}
+
 export async function bootstrapApp(): Promise<void> {
   if (bootstrapped) return;
   bootstrapped = true;
 
-  try { await ensureSystemTenant(); } catch (err) { console.error("[sbc] tenant error:", err); }
+  try { await ensureSystemTenant(); }      catch (err) { console.error("[sbc] tenant error:", err); }
   for (const manifest of CORE_MODULES) {
     try { await ensureInstalled(manifest); } catch (err) { console.error(`[sbc] module "${manifest.name}" error:`, err); }
   }
-  try { await ensureSuperAdmin(); } catch (err) { console.error("[sbc] admin error:", err); }
+  try { await syncCoreMenus(); }           catch (err) { console.error("[sbc] menu sync error:", err); }
+  try { await ensureSuperAdmin(); }        catch (err) { console.error("[sbc] admin error:", err); }
 }

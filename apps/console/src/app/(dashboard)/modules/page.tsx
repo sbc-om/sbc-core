@@ -1,6 +1,7 @@
 import { db, modules } from "@sbc/database";
 import { asc } from "drizzle-orm";
 import { HiMiniCube } from "react-icons/hi2";
+import { SyncMenusButton } from "@/components/sync-menus-button";
 
 const stateConfig: Record<string, { label: string; classes: string }> = {
   installed:   { label: "Installed",   classes: "border-green-200 bg-green-50 text-green-700" },
@@ -23,6 +24,7 @@ export default async function ModulesPage() {
           <h1 className="text-xl font-semibold tracking-tight text-foreground">Modules</h1>
           <p className="mt-1 text-sm text-muted-foreground">Install, upgrade, and manage platform modules.</p>
         </div>
+        <SyncMenusButton />
       </div>
 
       <div className="overflow-hidden rounded-lg border border-border bg-background">

@@ -9,6 +9,7 @@ import {
   HiMiniCube,
   HiMiniFolderOpen,
   HiMiniShieldCheck,
+  HiMiniShoppingBag,
   HiMiniUserGroup,
   HiMiniXMark,
 } from "react-icons/hi2";
@@ -18,13 +19,14 @@ import { cn } from "../lib/utils";
 
 const iconMap: Record<string, IconType> = {
   LayoutDashboard: HiMiniChartBar,
-  Settings2: HiMiniCog6Tooth,
-  Package: HiMiniCube,
-  FolderOpen: HiMiniFolderOpen,
-  Users: HiMiniUserGroup,
-  ShieldCheck: HiMiniShieldCheck,
-  ScrollText: PiScrollDuotone,
+  Settings2:       HiMiniCog6Tooth,
+  Package:         HiMiniCube,
+  FolderOpen:      HiMiniFolderOpen,
+  Users:           HiMiniUserGroup,
+  ShieldCheck:     HiMiniShieldCheck,
+  ScrollText:      PiScrollDuotone,
   SlidersHorizontal: HiMiniCog6Tooth,
+  Store:           HiMiniShoppingBag,
 };
 
 export interface SidebarMenuItem {
