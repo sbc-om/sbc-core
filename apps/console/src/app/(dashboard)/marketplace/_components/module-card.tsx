@@ -1,72 +1,136 @@
-import { HiMiniCheckCircle, HiMiniExclamationTriangle, HiMiniArrowPath } from "react-icons/hi2";
+import type { ComponentType } from "react";
+import {
+  HiMiniArrowPath,
+  HiMiniBanknotes,
+  HiMiniBriefcase,
+  HiMiniCheckCircle,
+  HiMiniCog6Tooth,
+  HiMiniCpuChip,
+  HiMiniExclamationCircle,
+  HiMiniFolderOpen,
+  HiMiniLockClosed,
+  HiMiniPhone,
+  HiMiniShieldCheck,
+  HiMiniSparkles,
+  HiMiniSquaresPlus,
+  HiMiniUserGroup,
+} from "react-icons/hi2";
 import { ActionButton } from "./action-button";
-import { PRICING_CONFIG } from "../_data/catalog";
-import type { CatalogModule, CatalogStatus } from "../_data/catalog";
+import type { CatalogModule, CatalogStatus, Pricing } from "../_data/catalog";
+
+// ── Icon registry ────────────────────────────────────────────────────────────
+const MODULE_ICONS: Record<string, ComponentType<{ className?: string }>> = {
+  cpu:       HiMiniCpuChip,
+  lock:      HiMiniLockClosed,
+  folder:    HiMiniFolderOpen,
+  users:     HiMiniUserGroup,
+  briefcase: HiMiniBriefcase,
+  banknotes: HiMiniBanknotes,
+  shield:    HiMiniShieldCheck,
+  workflow:  HiMiniSquaresPlus,
+  phone:     HiMiniPhone,
+  sparkles:  HiMiniSparkles,
+  cog:       HiMiniCog6Tooth,
+};
+
+// ── Pricing config ────────────────────────────────────────────────────────────
+const PRICING: Record<Pricing, { label: string; fg: string; bg: string; border: string }> = {
+  free:       { label: "Free",       fg: "text-emerald-700", bg: "bg-emerald-50",  border: "border-emerald-200" },
+  pro:        { label: "Pro",        fg: "text-blue-700",    bg: "bg-blue-50",     border: "border-blue-200"    },
+  enterprise: { label: "Enterprise", fg: "text-violet-700",  bg: "bg-violet-50",   border: "border-violet-200"  },
+};
+
+// ── Status config ─────────────────────────────────────────────────────────────
+const STATUS: Record<CatalogStatus, {
+  label:  string;
+  fg:     string;
+  bg:     string;
+  border: string;
+  icon:   ComponentType<{ className?: string }>;
+} | null> = {
+  installed:   { label: "Installed",   fg: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200", icon: HiMiniCheckCircle   },
+  core:        { label: "Core",        fg: "text-slate-600",   bg: "bg-slate-100",  border: "border-slate-200",   icon: HiMiniCpuChip       },
+  in_progress: { label: "Installing",  fg: "text-blue-700",    bg: "bg-blue-50",    border: "border-blue-200",    icon: HiMiniArrowPath      },
+  error:       { label: "Error",       fg: "text-rose-700",    bg: "bg-rose-50",    border: "border-rose-200",    icon: HiMiniExclamationCircle },
+  available:   null,
+  coming_soon: null,
+};
 
 interface Props {
-  module: CatalogModule;
-  status: CatalogStatus;
+  module:           CatalogModule;
+  status:           CatalogStatus;
   installedVersion: string | null;
 }
 
-const STATUS_BADGE: Record<CatalogStatus, { label: string; classes: string; icon?: React.ReactNode } | null> = {
-  installed:    { label: "Installed",   classes: "border-green-200 bg-green-50 text-green-700", icon: <HiMiniCheckCircle className="h-3 w-3" /> },
-  core:         { label: "Core",        classes: "border-border bg-muted text-muted-foreground", icon: <HiMiniCheckCircle className="h-3 w-3" /> },
-  error:        { label: "Error",       classes: "border-rose-200 bg-rose-50 text-rose-700", icon: <HiMiniExclamationTriangle className="h-3 w-3" /> },
-  in_progress:  { label: "Installing…", classes: "border-blue-200 bg-blue-50 text-blue-700", icon: <HiMiniArrowPath className="h-3 w-3 animate-spin" /> },
-  available:    null,
-  coming_soon:  null,
-};
-
 export function ModuleCard({ module: mod, status, installedVersion }: Props) {
-  const pricing       = PRICING_CONFIG[mod.pricing];
-  const statusBadge   = STATUS_BADGE[status];
+  const Icon         = MODULE_ICONS[mod.icon] ?? HiMiniCog6Tooth;
+  const pricing      = PRICING[mod.pricing];
+  const statusCfg    = STATUS[status];
+  const isActive     = status === "installed" || status === "core";
+  const isComingSoon = status === "coming_soon";
 
   return (
     <div
-      className={`flex flex-col rounded-lg border bg-background transition-shadow hover:shadow-sm ${
-        status === "installed" || status === "core"
-          ? "border-green-200"
-          : status === "error"
-            ? "border-rose-200"
-            : "border-border"
-      }`}
+      className={[
+        "group flex flex-col overflow-hidden rounded-lg border bg-background transition-all duration-150",
+        isActive           ? "border-emerald-200 shadow-sm"                       : "",
+        status === "error" ? "border-rose-200"                                    : "",
+        !isActive && status !== "error" ? "border-border hover:border-slate-300 hover:shadow-sm" : "",
+        isComingSoon       ? "opacity-75"                                          : "",
+      ].filter(Boolean).join(" ")}
     >
-      {/* Card body */}
+
+      {/* Body */}
       <div className="flex flex-1 flex-col p-5">
-        {/* Top row: icon + badges */}
+
+        {/* Top row */}
         <div className="flex items-start justify-between gap-3">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-2xl">
-            {mod.icon}
-          </span>
-          <div className="flex flex-wrap items-center justify-end gap-1.5">
-            {/* Status badge */}
-            {statusBadge && (
-              <span className={`inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${statusBadge.classes}`}>
-                {statusBadge.icon}
-                {statusBadge.label}
+          {/* Icon */}
+          <div
+            className={[
+              "flex h-10 w-10 shrink-0 items-center justify-center rounded-md border",
+              isActive ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                       : "border-border bg-muted text-muted-foreground group-hover:border-slate-300",
+            ].join(" ")}
+          >
+            <Icon className="h-5 w-5" />
+          </div>
+
+          {/* Badges */}
+          <div className="flex flex-wrap items-start justify-end gap-1.5">
+            {statusCfg && (
+              <span className={`inline-flex items-center gap-1 rounded border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${statusCfg.fg} ${statusCfg.bg} ${statusCfg.border}`}>
+                <statusCfg.icon className={`h-3 w-3 ${status === "in_progress" ? "animate-spin" : ""}`} />
+                {statusCfg.label}
               </span>
             )}
-            {/* Pricing badge */}
-            <span className={`rounded border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${pricing.classes}`}>
+            <span className={`rounded border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${pricing.fg} ${pricing.bg} ${pricing.border}`}>
               {pricing.label}
             </span>
           </div>
         </div>
 
-        {/* Title + description */}
-        <div className="mt-3 flex-1">
-          <h3 className="text-sm font-semibold text-foreground">{mod.title}</h3>
-          <p className="mt-1 text-xs leading-relaxed text-muted-foreground line-clamp-3">
-            {mod.description}
+        {/* Title + category */}
+        <div className="mt-3">
+          <h3 className={`text-sm font-semibold leading-snug ${isComingSoon ? "text-muted-foreground" : "text-foreground"}`}>
+            {mod.title}
+          </h3>
+          <p className="mt-0.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/70">
+            {mod.categoryLabel}
           </p>
         </div>
 
+        {/* Description */}
+        <p className={`mt-2 flex-1 text-xs leading-relaxed line-clamp-2 ${isComingSoon ? "text-muted-foreground/60" : "text-muted-foreground"}`}>
+          {mod.description}
+        </p>
+
         {/* Tags */}
         {mod.tags.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-1">
-            {mod.tags.slice(0, 3).map((tag) => (
-              <span key={tag} className="rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+          <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1">
+            {mod.tags.slice(0, 4).map((tag, i) => (
+              <span key={tag} className="flex items-center gap-1.5 text-[10px] text-muted-foreground/60">
+                {i > 0 && <span className="h-2.5 w-px bg-border" />}
                 {tag}
               </span>
             ))}
@@ -74,18 +138,17 @@ export function ModuleCard({ module: mod, status, installedVersion }: Props) {
         )}
       </div>
 
-      {/* Card footer */}
-      <div className="flex items-center justify-between border-t border-border px-5 py-3">
-        <div className="flex flex-col">
-          <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-            {mod.categoryLabel}
-          </span>
-          <span className="text-[10px] text-muted-foreground">
+      {/* Footer */}
+      <div className="flex items-center justify-between border-t border-border bg-muted/20 px-5 py-3">
+        <div className="flex items-baseline gap-2">
+          <span className="font-mono text-[10px] text-muted-foreground/60">
             v{installedVersion ?? mod.version}
-            {mod.priceLabel && (
-              <span className="ml-1.5 font-medium text-foreground">{mod.priceLabel}</span>
-            )}
           </span>
+          {mod.priceLabel && (
+            <span className="text-[11px] font-semibold text-foreground">
+              {mod.priceLabel}
+            </span>
+          )}
         </div>
 
         <ActionButton

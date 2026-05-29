@@ -1,7 +1,13 @@
 "use client";
 
 import { useTransition } from "react";
-import { HiMiniArrowDownTray, HiMiniArrowUpTray, HiMiniLockClosed, HiMiniCheckCircle } from "react-icons/hi2";
+import {
+  HiMiniArrowDownTray,
+  HiMiniCheckCircle,
+  HiMiniClock,
+  HiMiniCpuChip,
+  HiMiniTrash,
+} from "react-icons/hi2";
 import { installModuleAction, uninstallModuleAction } from "@/actions/modules";
 import { useToast, useConfirm } from "@/components/system-feedback";
 import type { CatalogStatus, Pricing } from "../_data/catalog";
@@ -22,110 +28,90 @@ export function ActionButton({ name, title, status, pricing, installable }: Prop
   function handleInstall() {
     startTransition(async () => {
       const result = await installModuleAction(name);
-      if (result.error) {
-        toast.error("Install failed", result.error);
-      } else {
-        toast.success(`${title} installed`, "The module is now active.");
-      }
+      if (result.error) toast.error("Install failed", result.error);
+      else              toast.success(`${title} installed`, "The module is now active.");
     });
   }
 
   async function handleUninstall() {
     const ok = await confirm({
-      title: `Uninstall ${title}?`,
-      description: "This removes all menus and permissions registered by this module. Existing data is preserved unless you explicitly remove it.",
+      title:        `Uninstall ${title}?`,
+      description:  "Removes all menus and permissions registered by this module. Existing data is preserved.",
       confirmLabel: "Uninstall",
-      tone: "danger",
+      tone:         "danger",
     });
     if (!ok) return;
-
     startTransition(async () => {
       const result = await uninstallModuleAction(name);
-      if (result.error) {
-        toast.error("Uninstall failed", result.error);
-      } else {
-        toast.success(`${title} uninstalled`, "The module has been removed.");
-      }
+      if (result.error) toast.error("Uninstall failed", result.error);
+      else              toast.success(`${title} removed`, "The module has been uninstalled.");
     });
   }
 
-  // Core modules — cannot be uninstalled
+  const base = "inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50";
+
   if (status === "core") {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-md border border-border bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground">
-        <HiMiniCheckCircle className="h-3.5 w-3.5" />
+      <span className={`${base} border-slate-200 bg-slate-100 text-slate-500 cursor-default`}>
+        <HiMiniCpuChip className="h-3.5 w-3.5" />
         Core
       </span>
     );
   }
 
-  // Installed
   if (status === "installed") {
     return (
       <button
         type="button"
         disabled={pending}
         onClick={() => void handleUninstall()}
-        className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-600 transition-colors hover:bg-rose-100 disabled:opacity-50"
+        className={`${base} border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100`}
       >
-        <HiMiniArrowUpTray className="h-3.5 w-3.5" />
+        <HiMiniTrash className="h-3.5 w-3.5" />
         {pending ? "Removing…" : "Uninstall"}
       </button>
     );
   }
 
-  // In progress
   if (status === "in_progress") {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-md border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-600">
+      <span className={`${base} border-blue-200 bg-blue-50 text-blue-600 cursor-default`}>
         <span className="h-3 w-3 animate-spin rounded-full border-2 border-blue-300 border-t-blue-600" />
-        Processing…
+        Processing
       </span>
     );
   }
 
-  // Error
   if (status === "error") {
     return (
       <button
         type="button"
         disabled={pending}
         onClick={handleInstall}
-        className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-600 transition-colors hover:bg-rose-100 disabled:opacity-50"
+        className={`${base} border-rose-200 bg-rose-50 text-rose-600 hover:bg-rose-100`}
       >
         {pending ? "Retrying…" : "Retry"}
       </button>
     );
   }
 
-  // Coming soon — not installable yet
+  // Not installable yet (coming soon)
   if (!installable) {
-    if (pricing === "pro" || pricing === "enterprise") {
-      return (
-        <button
-          type="button"
-          className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground"
-          disabled
-        >
-          <HiMiniLockClosed className="h-3.5 w-3.5" />
-          Coming Soon
-        </button>
-      );
-    }
     return (
-      <span className="rounded-md border border-border bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground">
+      <span className={`${base} border-border bg-muted text-muted-foreground cursor-default`}>
+        <HiMiniClock className="h-3.5 w-3.5" />
         Coming Soon
       </span>
     );
   }
 
-  // Available — can be installed
+  // Available — installable
   return (
     <button
       type="button"
       disabled={pending}
       onClick={handleInstall}
-      className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+      className={`${base} border-primary bg-primary text-primary-foreground hover:bg-primary/90`}
     >
       <HiMiniArrowDownTray className="h-3.5 w-3.5" />
       {pending ? "Installing…" : "Install"}

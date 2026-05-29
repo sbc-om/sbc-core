@@ -1,70 +1,64 @@
-export type Pricing = "free" | "pro" | "enterprise";
+export type Pricing       = "free" | "pro" | "enterprise";
 export type CatalogStatus = "installed" | "available" | "in_progress" | "error" | "coming_soon" | "core";
 
 export interface CatalogModule {
-  name:         string;
-  title:        string;
-  description:  string;
-  category:     string;
+  name:          string;
+  title:         string;
+  description:   string;
+  category:      string;
   categoryLabel: string;
-  icon:         string;   // emoji
-  version:      string;
-  author:       string;
-  pricing:      Pricing;
-  priceLabel?:  string;
-  depends:      string[];
-  tags:         string[];
-  featured:     boolean;
-  installable:  boolean;  // false = coming soon
+  icon:          string;   // key into MODULE_ICONS map
+  version:       string;
+  author:        string;
+  pricing:       Pricing;
+  priceLabel?:   string;
+  depends:       string[];
+  tags:          string[];
+  featured:      boolean;
+  installable:   boolean;
 }
 
 export const CATEGORIES = [
-  { key: "all",           label: "All" },
-  { key: "installed",     label: "Installed" },
-  { key: "sales",         label: "Sales" },
-  { key: "hr",            label: "HR" },
-  { key: "finance",       label: "Finance" },
-  { key: "operations",    label: "Operations" },
-  { key: "communication", label: "Communication" },
-  { key: "ai",            label: "AI" },
-  { key: "system",        label: "System" },
+  { key: "all",           label: "All",           icon: "grid" },
+  { key: "installed",     label: "Installed",      icon: "check" },
+  { key: "sales",         label: "Sales",          icon: "users" },
+  { key: "hr",            label: "HR",             icon: "briefcase" },
+  { key: "finance",       label: "Finance",        icon: "banknotes" },
+  { key: "operations",    label: "Operations",     icon: "cog" },
+  { key: "communication", label: "Communication",  icon: "phone" },
+  { key: "ai",            label: "AI",             icon: "sparkles" },
+  { key: "system",        label: "System",         icon: "cpu" },
 ] as const;
 
-export const PRICING_CONFIG: Record<Pricing, { label: string; classes: string }> = {
-  free:       { label: "Free",       classes: "border-green-200 bg-green-50 text-green-700" },
-  pro:        { label: "Pro",        classes: "border-blue-200 bg-blue-50 text-blue-700" },
-  enterprise: { label: "Enterprise", classes: "border-purple-200 bg-purple-50 text-purple-700" },
-};
-
 export const CATALOG: CatalogModule[] = [
-  // ── System (core, always installed) ─────────────────────────────
+  // ── System (core) ────────────────────────────────────────────────
   {
     name:          "base",
     title:         "Platform Core",
     description:   "Admin menus, system settings, audit logging, and the module lifecycle engine.",
     category:      "system",
     categoryLabel: "System",
-    icon:          "⚙️",
-    version:       "1.0.1",
+    icon:          "cpu",
+    version:       "1.0.2",
     author:        "SBC Team",
     pricing:       "free",
     depends:       [],
-    tags:          ["core", "system", "menus", "settings"],
+    tags:          ["core", "kernel", "settings", "audit"],
     featured:      false,
     installable:   false,
   },
   {
     name:          "iam",
     title:         "Users & Access",
-    description:   "User accounts, role-based access control, and permission management.",
+    description:   "User accounts, role-based access control, and granular permission management.",
     category:      "system",
     categoryLabel: "System",
-    icon:          "🔐",
-    version:       "1.0.0",
+    icon:          "lock",
+    version:       "1.0.1",
     author:        "SBC Team",
     pricing:       "free",
     depends:       ["base"],
-    tags:          ["core", "users", "roles", "permissions", "rbac"],
+    tags:          ["users", "roles", "permissions", "rbac"],
     featured:      false,
     installable:   false,
   },
@@ -74,12 +68,12 @@ export const CATALOG: CatalogModule[] = [
     description:   "Centralized file storage, versioning, and cross-module document linking.",
     category:      "operations",
     categoryLabel: "Operations",
-    icon:          "📁",
-    version:       "1.0.0",
+    icon:          "folder",
+    version:       "1.0.1",
     author:        "SBC Team",
     pricing:       "free",
     depends:       ["base"],
-    tags:          ["files", "storage", "documents", "uploads"],
+    tags:          ["files", "storage", "uploads", "links"],
     featured:      false,
     installable:   true,
   },
@@ -88,10 +82,10 @@ export const CATALOG: CatalogModule[] = [
   {
     name:          "crm",
     title:         "CRM",
-    description:   "Manage customers, leads, and sales pipelines from a single unified view.",
+    description:   "Manage customers, leads, and sales pipelines from one unified workspace.",
     category:      "sales",
-    categoryLabel: "Sales & CRM",
-    icon:          "👥",
+    categoryLabel: "Sales",
+    icon:          "users",
     version:       "1.0.0",
     author:        "SBC Team",
     pricing:       "free",
@@ -105,16 +99,16 @@ export const CATALOG: CatalogModule[] = [
   {
     name:          "hr",
     title:         "Human Resources",
-    description:   "Employee records, leave requests, payroll, and org chart management.",
+    description:   "Employee records, leave management, payroll processing, and org chart views.",
     category:      "hr",
-    categoryLabel: "Human Resources",
-    icon:          "🧑‍💼",
+    categoryLabel: "HR",
+    icon:          "briefcase",
     version:       "1.0.0",
     author:        "SBC Team",
     pricing:       "pro",
     priceLabel:    "$29 / mo",
     depends:       ["base"],
-    tags:          ["employees", "payroll", "leave", "hr"],
+    tags:          ["employees", "payroll", "leave", "org-chart"],
     featured:      true,
     installable:   false,
   },
@@ -126,7 +120,7 @@ export const CATALOG: CatalogModule[] = [
     description:   "Invoices, payments, expenses, and a full double-entry accounting ledger.",
     category:      "finance",
     categoryLabel: "Finance",
-    icon:          "💰",
+    icon:          "banknotes",
     version:       "1.0.0",
     author:        "SBC Team",
     pricing:       "pro",
@@ -139,16 +133,16 @@ export const CATALOG: CatalogModule[] = [
   {
     name:          "insurance",
     title:         "Insurance",
-    description:   "Policy management, claims processing, and underwriting workflows.",
+    description:   "Policy lifecycle management, claims processing, and underwriting workflows.",
     category:      "finance",
     categoryLabel: "Finance",
-    icon:          "🛡️",
+    icon:          "shield",
     version:       "1.0.0",
     author:        "SBC Team",
     pricing:       "enterprise",
     priceLabel:    "$99 / mo",
     depends:       ["base", "finance"],
-    tags:          ["insurance", "policies", "claims", "underwriting"],
+    tags:          ["policies", "claims", "underwriting", "insurance"],
     featured:      false,
     installable:   false,
   },
@@ -157,10 +151,10 @@ export const CATALOG: CatalogModule[] = [
   {
     name:          "workflow_builder",
     title:         "Workflow Builder",
-    description:   "Visual drag-and-drop workflow designer with approval steps and SLA tracking.",
+    description:   "Visual drag-and-drop designer for multi-step workflows with approval steps and SLA tracking.",
     category:      "operations",
     categoryLabel: "Operations",
-    icon:          "🔀",
+    icon:          "workflow",
     version:       "1.0.0",
     author:        "SBC Team",
     pricing:       "pro",
@@ -175,10 +169,10 @@ export const CATALOG: CatalogModule[] = [
   {
     name:          "call_center",
     title:         "Call Center",
-    description:   "Agent queues, ticket management, SLA routing, and call logging.",
+    description:   "Agent queues, ticket management, SLA routing, and call logging across teams.",
     category:      "communication",
     categoryLabel: "Communication",
-    icon:          "☎️",
+    icon:          "phone",
     version:       "1.0.0",
     author:        "SBC Team",
     pricing:       "pro",
@@ -193,16 +187,16 @@ export const CATALOG: CatalogModule[] = [
   {
     name:          "ai_agents",
     title:         "AI Agents",
-    description:   "Embed AI assistants into any module with tool use, embeddings, and audit-safe prompt runners.",
+    description:   "Embed AI assistants into any module with tool use, vector embeddings, and audit-safe prompt runners.",
     category:      "ai",
     categoryLabel: "AI",
-    icon:          "🤖",
+    icon:          "sparkles",
     version:       "1.0.0",
     author:        "SBC Team",
     pricing:       "enterprise",
     priceLabel:    "$79 / mo",
     depends:       ["base"],
-    tags:          ["ai", "llm", "tools", "embeddings", "automation"],
+    tags:          ["ai", "llm", "embeddings", "tools", "automation"],
     featured:      true,
     installable:   false,
   },
