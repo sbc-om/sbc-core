@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { eq, gte, sql } from "drizzle-orm";
+import { MODULE_WIDGET_LOADERS } from "@/lib/widget-registry";
+import { WidgetArea } from "./_components/widget-area";
+import { getSessionUser } from "@/lib/session";
+import { getWidgetLayout } from "@/actions/widget-layout";
 import {
   HiMiniBolt,
-  HiMiniCheckCircle,
-  HiMiniCpuChip,
   HiMiniCube,
   HiMiniPuzzlePiece,
   HiMiniShieldCheck,
@@ -11,36 +13,8 @@ import {
 } from "react-icons/hi2";
 import type { ComponentType } from "react";
 import { db, modules, auditLogs, users as usersTable, events } from "@sbc/database";
+import { SYSTEM_TENANT_ID } from "@/lib/bootstrap";
 import { CATALOG } from "./marketplace/_data/catalog";
-
-// ── icon map (mirrors marketplace catalog) ────────────────────────────────────
-import {
-  HiMiniBanknotes,
-  HiMiniBriefcase,
-  HiMiniCog6Tooth,
-  HiMiniFolderOpen,
-  HiMiniIdentification,
-  HiMiniLockClosed,
-  HiMiniPhone,
-  HiMiniSparkles,
-  HiMiniSquaresPlus,
-  HiMiniUserGroup,
-} from "react-icons/hi2";
-
-const MODULE_ICONS: Record<string, ComponentType<{ className?: string }>> = {
-  cpu:            HiMiniCpuChip,
-  lock:           HiMiniLockClosed,
-  folder:         HiMiniFolderOpen,
-  identification: HiMiniIdentification,
-  users:          HiMiniUserGroup,
-  briefcase:      HiMiniBriefcase,
-  banknotes:      HiMiniBanknotes,
-  shield:         HiMiniShieldCheck,
-  workflow:       HiMiniSquaresPlus,
-  phone:          HiMiniPhone,
-  sparkles:       HiMiniSparkles,
-  cog:            HiMiniCog6Tooth,
-};
 
 // ── page ──────────────────────────────────────────────────────────────────────
 export default async function DashboardPage() {
@@ -48,13 +22,17 @@ export default async function DashboardPage() {
   const dayStart = new Date(now);
   dayStart.setHours(0, 0, 0, 0);
 
-  const [installedRowsRaw, userCount, auditToday, pendingEvents] = await Promise.all([
+  const user = await getSessionUser();
+  const tenantId = user?.tenantId ?? SYSTEM_TENANT_ID;
+
+  const [installedRowsRaw, userCount, auditToday, pendingEvents, savedLayout] = await Promise.all([
     db.select({ name: modules.name, title: modules.title, version: modules.installedVersion })
       .from(modules)
       .where(eq(modules.state, "installed")),
     db.select({ count: sql<number>`count(*)::int` }).from(usersTable).where(eq(usersTable.isActive, true)),
     db.select({ count: sql<number>`count(*)::int` }).from(auditLogs).where(gte(auditLogs.createdAt, dayStart)),
     db.select({ count: sql<number>`count(*)::int` }).from(events).where(sql`processed_at IS NULL`),
+    user ? getWidgetLayout(user.id) : Promise.resolve(null),
   ]);
 
   // Deduplicate by name (the modules table has no unique constraint on name alone)
@@ -86,8 +64,22 @@ export default async function DashboardPage() {
       return catalog ? [{ ...row, catalog }] : [];
     });
 
-  const coreModules = enriched.filter((r) => r.catalog.category === "system");
-  const appModules  = enriched.filter((r) => r.catalog.category !== "system");
+  const appModules = enriched.filter((r) => r.catalog.category !== "system");
+
+  // Load widget data for all installed app modules that have a widget loader
+  const widgetResults = await Promise.all(
+    appModules
+      .filter((m) => MODULE_WIDGET_LOADERS[m.name])
+      .map(async (m) => {
+        try {
+          const data = await MODULE_WIDGET_LOADERS[m.name]!(SYSTEM_TENANT_ID);
+          return { name: m.name, data, error: null };
+        } catch {
+          return { name: m.name, data: null, error: true };
+        }
+      })
+  );
+  const widgets = widgetResults.filter((w) => w.data !== null);
 
   return (
     <div className="space-y-8">
@@ -110,36 +102,21 @@ export default async function DashboardPage() {
         <StatCard icon={HiMiniShieldCheck} label="Audit Entries"     value={auditCount}      sub="today"        />
       </div>
 
-      {/* ── App modules (user-facing) ────────────────────────────── */}
-      {appModules.length > 0 && (
-        <section className="space-y-4">
-          <SectionHeader label="Apps" />
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {appModules.map((m) => {
-              const cat = m.catalog!;
-              const Icon = MODULE_ICONS[cat.icon] ?? HiMiniCube;
-              return (
-                <ModuleQuickCard
-                  key={m.name}
-                  title={cat.title}
-                  description={cat.description}
-                  category={cat.categoryLabel}
-                  version={m.version ?? cat.version}
-                  Icon={Icon}
-                  href="#"
-                />
-              );
-            })}
-          </div>
-        </section>
-      )}
 
       {/* ── Widget area ──────────────────────────────────────────── */}
-      <section className="space-y-4">
-        <SectionHeader label="Widgets" />
-
-        {appModules.length === 0 ? (
-          /* Empty state — no user-facing modules installed */
+      {widgets.length > 0 ? (
+        <section className="space-y-4">
+          <SectionHeader label="Widgets" />
+          <WidgetArea
+            widgets={widgets.map((w) => ({ data: w.data! }))}
+            initialLayout={savedLayout ?? []}
+            userId={user?.id ?? ""}
+            tenantId={tenantId}
+          />
+        </section>
+      ) : appModules.length > 0 ? null : (
+        <section className="space-y-4">
+          <SectionHeader label="Widgets" />
           <div className="flex flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-border bg-muted/10 py-16 text-center">
             <span className="flex h-12 w-12 items-center justify-center rounded-md border border-border bg-background text-muted-foreground">
               <HiMiniPuzzlePiece className="h-6 w-6" />
@@ -147,7 +124,7 @@ export default async function DashboardPage() {
             <div className="space-y-1">
               <p className="text-sm font-medium text-foreground">No widgets yet</p>
               <p className="max-w-sm text-xs leading-relaxed text-muted-foreground">
-                Installed modules can register dashboard widgets here. Each module decides what data to surface.
+                Install modules from the Marketplace to populate this area with live data and shortcuts.
               </p>
             </div>
             <Link
@@ -157,60 +134,9 @@ export default async function DashboardPage() {
               Browse Marketplace
             </Link>
           </div>
-        ) : (
-          /* Widget placeholder per installed app module */
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {appModules.map((m) => {
-              const cat  = m.catalog!;
-              const Icon = MODULE_ICONS[cat.icon] ?? HiMiniCube;
-              return (
-                <div key={m.name} className="flex min-h-40 flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-muted/10 p-6 text-center">
-                  <Icon className="h-6 w-6 text-muted-foreground/50" />
-                  <div className="space-y-0.5">
-                    <p className="text-xs font-medium text-muted-foreground">{cat.title}</p>
-                    <p className="text-[11px] text-muted-foreground/60">
-                      Widget not registered yet
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
-
-      {/* ── Core infrastructure ──────────────────────────────────── */}
-      {coreModules.length > 0 && (
-        <section className="space-y-3">
-          <SectionHeader label="Platform" />
-          <div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-background">
-            {coreModules.map((m) => {
-              const cat  = m.catalog!;
-              const Icon = MODULE_ICONS[cat.icon] ?? HiMiniCube;
-              return (
-                <div key={m.name} className="flex items-center gap-4 px-4 py-3">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-muted-foreground">
-                    <Icon className="h-4 w-4" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-foreground">{cat.title}</p>
-                    <p className="truncate text-xs text-muted-foreground">{cat.description}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-[10px] text-muted-foreground/60">
-                      v{m.version ?? cat.version}
-                    </span>
-                    <span className="inline-flex items-center gap-1 rounded border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-                      <HiMiniCheckCircle className="h-3 w-3" />
-                      Active
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
         </section>
       )}
+
     </div>
   );
 }
@@ -244,47 +170,6 @@ function StatCard({
   );
 }
 
-function ModuleQuickCard({
-  title,
-  description,
-  category,
-  version,
-  Icon,
-  href,
-}: {
-  title:       string;
-  description: string;
-  category:    string;
-  version:     string;
-  Icon:        ComponentType<{ className?: string }>;
-  href:        string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="group flex flex-col gap-3 rounded-lg border border-border bg-background p-4 transition-all hover:border-slate-300 hover:shadow-sm"
-    >
-      <div className="flex items-center justify-between gap-3">
-        <span className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-muted text-muted-foreground transition-colors group-hover:border-slate-300">
-          <Icon className="h-4 w-4" />
-        </span>
-        <span className="rounded border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-          Installed
-        </span>
-      </div>
-      <div>
-        <p className="text-sm font-semibold text-foreground">{title}</p>
-        <p className="mt-0.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground/70">
-          {category}
-        </p>
-        <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground line-clamp-2">
-          {description}
-        </p>
-      </div>
-      <p className="font-mono text-[10px] text-muted-foreground/50">v{version}</p>
-    </Link>
-  );
-}
 
 function SectionHeader({ label }: { label: string }) {
   return (

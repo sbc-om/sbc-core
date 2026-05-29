@@ -11,29 +11,32 @@
     "clean": "rm -rf .next dist"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@sbc/auth": "workspace:*",
     "@sbc/database": "workspace:*",
     "@sbc/kernel": "workspace:*",
+    "@sbc/module-base": "workspace:*",
+    "@sbc/module-contacts": "workspace:*",
+    "@sbc/module-documents": "workspace:*",
+    "@sbc/module-iam": "workspace:*",
     "@sbc/rbac": "workspace:*",
     "@sbc/sdk": "workspace:*",
-    "@sbc/module-base":     "workspace:*",
-    "@sbc/module-contacts": "workspace:*",
-    "@sbc/module-documents":"workspace:*",
-    "@sbc/module-iam":      "workspace:*",
     "@sbc/ui": "workspace:*",
     "drizzle-orm": "^0.43.1",
     "next": "15.3.2",
     "react": "^19.0.0",
-    "react-icons": "^5.5.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-icons": "^5.5.0"
   },
   "devDependencies": {
     "@sbc/config": "workspace:*",
+    "@tailwindcss/postcss": "^4",
     "@types/node": "^20.19.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "tailwindcss": "^4",
-    "@tailwindcss/postcss": "^4",
     "typescript": "^5.8.3"
   }
 }

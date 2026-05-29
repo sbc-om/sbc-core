@@ -1,7 +1,14 @@
 import crypto from "node:crypto";
-import { and, asc, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { and, asc, eq, ilike, isNotNull, or, sql } from "drizzle-orm";
 import { db } from "@sbc/database";
 import { contacts, type Contact } from "../schema";
+
+export interface ContactsWidgetData {
+  total:     number;
+  withEmail: number;
+  withPhone: number;
+  latest:    { name: string; company: string | null }[];
+}
 
 export interface CreateContactInput {
   firstName: string;
@@ -168,6 +175,29 @@ export async function updateContact(
     .where(and(eq(contacts.id, id), eq(contacts.tenantId, tenantId), eq(contacts.isDeleted, false)))
     .returning();
   return updated ?? null;
+}
+
+export async function getContactsWidgetData(tenantId: string): Promise<ContactsWidgetData> {
+  await ensureContactsInfrastructure();
+  const base = and(eq(contacts.tenantId, tenantId), eq(contacts.isDeleted, false));
+
+  const [totalRow, emailRow, phoneRow, latestRows] = await Promise.all([
+    db.select({ count: sql<number>`count(*)::int` }).from(contacts).where(base),
+    db.select({ count: sql<number>`count(*)::int` }).from(contacts).where(and(base, isNotNull(contacts.email))),
+    db.select({ count: sql<number>`count(*)::int` }).from(contacts).where(and(base, isNotNull(contacts.phone))),
+    db.select({ firstName: contacts.firstName, lastName: contacts.lastName, company: contacts.company })
+      .from(contacts).where(base).orderBy(asc(contacts.createdAt)).limit(5),
+  ]);
+
+  return {
+    total:     totalRow[0]?.count ?? 0,
+    withEmail: emailRow[0]?.count ?? 0,
+    withPhone: phoneRow[0]?.count ?? 0,
+    latest:    latestRows.map((r) => ({
+      name:    [r.firstName, r.lastName].filter(Boolean).join(" "),
+      company: r.company,
+    })),
+  };
 }
 
 export async function deleteContact(

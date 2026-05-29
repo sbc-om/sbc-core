@@ -1,5 +1,5 @@
 import { db, modules } from "@sbc/database";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc, isNull } from "drizzle-orm";
 import type { ModuleManifest } from "@sbc/sdk";
 import type { ModuleState } from "@sbc/database";
 import { moduleRegistry } from "./registry";
@@ -43,6 +43,19 @@ async function setState(
     );
 }
 
+async function findLatestModuleRecord(moduleName: string, tenantId?: string) {
+  const scope = tenantId ? eq(modules.tenantId, tenantId) : isNull(modules.tenantId);
+
+  const [row] = await db
+    .select()
+    .from(modules)
+    .where(and(eq(modules.name, moduleName), scope))
+    .orderBy(desc(modules.updatedAt), desc(modules.createdAt))
+    .limit(1);
+
+  return row;
+}
+
 export async function installModule(
   manifest: ModuleManifest,
   options?: { tenantId?: string; installDemoData?: boolean }
@@ -61,11 +74,24 @@ export async function installModule(
     try {
       await setState(moduleName, "to_install", tenantId);
 
-      // Ensure DB record exists
-      await db
-        .insert(modules)
-        .values({ name: mod.name, title: mod.title, version: mod.version, tenantId, state: "to_install" })
-        .onConflictDoNothing();
+      const existingRecord = await findLatestModuleRecord(moduleName, tenantId);
+
+      if (existingRecord) {
+        await db
+          .update(modules)
+          .set({
+            title: mod.title,
+            version: mod.version,
+            state: "to_install",
+            error: null,
+            updatedAt: new Date(),
+          })
+          .where(eq(modules.id, existingRecord.id));
+      } else {
+        await db
+          .insert(modules)
+          .values({ name: mod.name, title: mod.title, version: mod.version, tenantId, state: "to_install" });
+      }
 
       await setState(moduleName, "installing", tenantId);
 

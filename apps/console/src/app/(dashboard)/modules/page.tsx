@@ -1,5 +1,5 @@
 import { db, modules } from "@sbc/database";
-import { asc } from "drizzle-orm";
+import { asc, desc } from "drizzle-orm";
 import { HiMiniCube } from "react-icons/hi2";
 import { SyncMenusButton } from "@/components/sync-menus-button";
 
@@ -15,7 +15,14 @@ const stateConfig: Record<string, { label: string; classes: string }> = {
 };
 
 export default async function ModulesPage() {
-  const rows = await db.select().from(modules).orderBy(asc(modules.name));
+  const allRows = await db
+    .select()
+    .from(modules)
+    .orderBy(asc(modules.name), desc(modules.updatedAt), desc(modules.createdAt));
+
+  const rows = Array.from(
+    new Map(allRows.map((row) => [row.name, row])).values()
+  );
 
   return (
     <div className="space-y-6">
