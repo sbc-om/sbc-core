@@ -19,6 +19,14 @@ export const BUILTIN_WIDGETS: BuiltinWidgetDef[] = [
     needsServerData: false,
   },
   {
+    id: "weather",
+    label: "Weather",
+    description: "Live local forecast with animated condition icon and temperature.",
+    category: "General",
+    size: "sm",
+    needsServerData: false,
+  },
+  {
     id: "calendar",
     label: "Calendar",
     description: "Current date with day name and month.",
@@ -68,6 +76,7 @@ export interface BuiltinWidgetConfig {
 
 /** Server-fetched numeric stat for platform stat widgets */
 export interface WidgetStatData {
+  label: string;
   value: number;
   sub: string;
   icon: "cube" | "users" | "bolt" | "shield";

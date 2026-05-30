@@ -3,20 +3,20 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@sbc/ui";
 
 const widgetVariants = cva(
-  "relative flex flex-col border-2 shadow-md rounded-3xl",
+  "relative flex flex-col border shadow-sm rounded-xl transition-shadow hover:shadow-md",
   {
     variants: {
       size: {
-        sm: "size-48",
-        md: "w-96 h-48",
-        lg: "size-96",
+        sm: "size-40",
+        md: "w-72 h-40",
+        lg: "size-72",
       },
       design: {
-        default: "p-6",
-        mumbai: "p-4",
+        default: "p-4",
+        mumbai: "p-3.5",
       },
       variant: {
-        default: "bg-background text-foreground border-border",
+        default: "bg-card text-card-foreground border-border",
         secondary: "bg-secondary text-secondary-foreground border-secondary",
       },
     },

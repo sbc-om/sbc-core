@@ -80,16 +80,16 @@ export default async function DashboardPage() {
   const builtinServerData: Record<string, WidgetStatData> = {};
 
   if (enabledBuiltinIds.has("stat-modules")) {
-    builtinServerData["stat-modules"] = { value: installedCount,  sub: "installed modules", icon: "cube"   };
+    builtinServerData["stat-modules"] = { label: "Installed modules", value: installedCount,  sub: "installed modules", icon: "cube"   };
   }
   if (enabledBuiltinIds.has("stat-users")) {
-    builtinServerData["stat-users"]   = { value: activeUserCount, sub: "active users",       icon: "users"  };
+    builtinServerData["stat-users"]   = { label: "Active users", value: activeUserCount, sub: "active users",       icon: "users"  };
   }
   if (enabledBuiltinIds.has("stat-events")) {
-    builtinServerData["stat-events"]  = { value: eventCount,      sub: "pending events",     icon: "bolt"   };
+    builtinServerData["stat-events"]  = { label: "Pending events", value: eventCount,      sub: "pending events",     icon: "bolt"   };
   }
   if (enabledBuiltinIds.has("stat-audit")) {
-    builtinServerData["stat-audit"]   = { value: auditCount,      sub: "audit entries today",icon: "shield" };
+    builtinServerData["stat-audit"]   = { label: "Audit today", value: auditCount,      sub: "audit entries today",icon: "shield" };
   }
 
   const hasBuiltinWidgets = enabledBuiltinIds.size > 0;
