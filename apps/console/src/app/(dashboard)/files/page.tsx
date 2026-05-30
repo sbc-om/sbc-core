@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { FileManager } from "@/components/documents/file-manager";
 import { FilePickerDemo } from "@/components/documents/file-picker-demo";
+import { DashboardPageHeader } from "@/components/dashboard-page-header";
 import { getSessionUser } from "@/lib/session";
 import {
   getTenantIdForUser,
@@ -55,10 +56,7 @@ export default async function FilesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="app-page-header">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">Files</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Upload, manage, and link files used across the platform.</p>
-      </div>
+      <DashboardPageHeader title="Files" />
       <FilePickerDemo />
       <FileManager
         initialFiles={files.map(serializeFile)}

@@ -65,22 +65,24 @@ export function ProfileForm({ user, initialAvatar, action }: Props) {
       </div>
 
       <div className="rounded-md border border-border bg-muted/30 p-4">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-sm font-medium text-foreground">Profile photo</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
               Link an image from the file library.
             </p>
           </div>
-          <FilePickerDialog
-            buttonLabel={avatarFile ? "Replace" : "Choose"}
-            title="Choose profile photo"
-            description="Select or upload an image from the file manager."
-            accept="image/*"
-            uploadDefaults={{ folder: "users/avatars", moduleName: "iam", tags: "avatar,user-profile" }}
-            selectedFileId={avatarFile?.id ?? null}
-            onSelect={setAvatarFile}
-          />
+          <div className="w-full sm:w-auto">
+            <FilePickerDialog
+              buttonLabel={avatarFile ? "Replace" : "Choose"}
+              title="Choose profile photo"
+              description="Select or upload an image from the file manager."
+              accept="image/*"
+              uploadDefaults={{ folder: "users/avatars", moduleName: "iam", tags: "avatar,user-profile" }}
+              selectedFileId={avatarFile?.id ?? null}
+              onSelect={setAvatarFile}
+            />
+          </div>
         </div>
 
         {(avatarFile || user.avatarUrl) && (
@@ -138,7 +140,7 @@ export function ProfileForm({ user, initialAvatar, action }: Props) {
       <button
         type="submit"
         disabled={pending}
-        className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+        className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 sm:w-auto"
       >
         {pending ? "Saving…" : "Save Changes"}
       </button>

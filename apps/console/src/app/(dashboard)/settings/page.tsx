@@ -14,6 +14,7 @@ import {
   HiMiniUsers,
 } from "react-icons/hi2";
 import { cn } from "@sbc/ui";
+import { DashboardPageHeader } from "@/components/dashboard-page-header";
 import { getSessionUser } from "@/lib/session";
 
 interface SettingsCard {
@@ -166,12 +167,7 @@ export default async function SettingsPage() {
   return (
     <div className="space-y-8">
       <section className="app-page-header">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground">Settings</h1>
-          <p className="text-sm text-muted-foreground">
-            A minimal control surface for account and operational preferences.
-          </p>
-        </div>
+        <DashboardPageHeader title="Settings" />
       </section>
 
       {groupedCards.map(([group, cards]) => (

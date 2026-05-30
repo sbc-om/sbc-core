@@ -22,7 +22,7 @@ export default async function RoleDetailPage({ params }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Link
           href="/roles"
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -52,7 +52,7 @@ export default async function RoleDetailPage({ params }: Props) {
             </div>
             <button
               type="submit"
-              className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 sm:w-auto"
             >
               Save Changes
             </button>
@@ -74,7 +74,7 @@ export default async function RoleDetailPage({ params }: Props) {
           </div>
         </section>
 
-        <section className="col-span-2 rounded-lg border border-border bg-background p-6">
+        <section className="rounded-lg border border-border bg-background p-6 lg:col-span-2">
           <div className="mb-4">
             <h2 className="text-sm font-semibold text-foreground">Permissions</h2>
             <p className="mt-0.5 text-xs text-muted-foreground">

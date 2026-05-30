@@ -69,11 +69,11 @@ export function PermissionChecklist({ roleId, all, assigned }: Props) {
         </div>
       ))}
 
-      <div className="flex items-center gap-3 border-t border-border pt-4">
+      <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center">
         <button
           onClick={save}
           disabled={pending}
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+          className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 sm:w-auto"
         >
           {pending ? "Saving…" : "Save Permissions"}
         </button>
@@ -83,7 +83,7 @@ export function PermissionChecklist({ roleId, all, assigned }: Props) {
             Saved
           </span>
         )}
-        <span className="ml-auto text-xs text-muted-foreground">{selected.size} selected</span>
+        <span className="text-xs text-muted-foreground sm:ml-auto">{selected.size} selected</span>
       </div>
     </div>
   );

@@ -116,7 +116,7 @@ function LinkedAssetCard({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
           <a
             href={buildDocumentUrl(item.document.id, {
               tenantId,
@@ -127,7 +127,7 @@ function LinkedAssetCard({
             })}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-2 rounded-md border border-input px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-accent"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-input px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-accent sm:w-auto"
           >
             <HiMiniArrowTopRightOnSquare className="h-4 w-4" />
             Open
@@ -136,7 +136,7 @@ function LinkedAssetCard({
             type="button"
             disabled={pending}
             onClick={remove}
-            className="inline-flex items-center gap-2 rounded-md border border-rose-300/40 px-3 py-2 text-xs font-medium text-rose-600 transition-colors hover:bg-rose-500/10 dark:text-rose-400 disabled:opacity-50"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-rose-300/40 px-3 py-2 text-xs font-medium text-rose-600 transition-colors hover:bg-rose-500/10 dark:text-rose-400 disabled:opacity-50 sm:w-auto"
           >
             <HiMiniTrash className="h-4 w-4" />
             Unlink
@@ -176,12 +176,12 @@ function LinkedAssetCard({
         </label>
       </div>
 
-      <div className="mt-4 flex justify-end">
+      <div className="mt-4 flex sm:justify-end">
         <button
           type="button"
           disabled={pending}
           onClick={save}
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+          className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 sm:w-auto"
         >
           {pending ? "Saving..." : "Save metadata"}
         </button>
@@ -245,18 +245,20 @@ function AddLinkedAssetCard({
           <p className="text-sm font-semibold text-foreground">Add linked asset</p>
           <p className="mt-1 text-sm text-muted-foreground">Select an existing file from the central library or upload one here and link it to this record.</p>
         </div>
-        <FilePickerDialog
-          buttonLabel={selectedFile ? "Replace file" : "Choose file"}
-          title="Choose asset to link"
-          description="Select an existing file from the global file manager and attach it to this record with structured metadata."
-          uploadDefaults={{
-            folder: "users/assets",
-            moduleName: "iam",
-            tags: "attachment,user-record",
-          }}
-          selectedFileId={selectedFile?.id ?? null}
-          onSelect={setSelectedFile}
-        />
+        <div className="w-full lg:w-auto">
+          <FilePickerDialog
+            buttonLabel={selectedFile ? "Replace file" : "Choose file"}
+            title="Choose asset to link"
+            description="Select an existing file from the global file manager and attach it to this record with structured metadata."
+            uploadDefaults={{
+              folder: "users/assets",
+              moduleName: "iam",
+              tags: "attachment,user-record",
+            }}
+            selectedFileId={selectedFile?.id ?? null}
+            onSelect={setSelectedFile}
+          />
+        </div>
       </div>
 
       {selectedFile && (
@@ -309,12 +311,12 @@ function AddLinkedAssetCard({
         </label>
       </div>
 
-      <div className="mt-4 flex justify-end">
+      <div className="mt-4 flex sm:justify-end">
         <button
           type="button"
           disabled={pending || !selectedFile}
           onClick={add}
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+          className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 sm:w-auto"
         >
           {pending ? "Linking..." : "Link asset"}
         </button>

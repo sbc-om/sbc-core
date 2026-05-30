@@ -4,6 +4,7 @@ import {
   HiMiniUserGroup,
 } from "react-icons/hi2";
 import { listCustomers } from "@/actions/crm";
+import { DashboardPageHeader } from "@/components/dashboard-page-header";
 import { CreateCustomerDialog } from "./_components/create-customer-dialog";
 import { DeleteCustomerButton } from "./_components/delete-customer-button";
 
@@ -25,18 +26,7 @@ export default async function CrmCustomersPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">Customers</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {customers.length > 0
-              ? `${customers.length} customer${customers.length !== 1 ? "s" : ""}`
-              : "Manage your CRM customers and accounts."}
-          </p>
-        </div>
-        <CreateCustomerDialog />
-      </div>
+      <DashboardPageHeader title="Customers" actions={<CreateCustomerDialog />} />
 
       {/* Table */}
       <div className="overflow-hidden rounded-lg border border-border bg-background">

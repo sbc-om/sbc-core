@@ -1,6 +1,7 @@
 import { db, modules } from "@sbc/database";
 import { asc, desc } from "drizzle-orm";
 import { HiMiniCube } from "react-icons/hi2";
+import { DashboardPageHeader } from "@/components/dashboard-page-header";
 import { SyncMenusButton } from "@/components/sync-menus-button";
 
 const stateConfig: Record<string, { label: string; classes: string }> = {
@@ -26,13 +27,7 @@ export default async function ModulesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">Modules</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Install, upgrade, and manage platform modules.</p>
-        </div>
-        <SyncMenusButton />
-      </div>
+      <DashboardPageHeader title="Modules" actions={<SyncMenusButton />} />
 
       <div className="overflow-hidden rounded-lg border border-border bg-background">
         {rows.length === 0 ? (

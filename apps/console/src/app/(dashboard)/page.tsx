@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { eq, gte, sql } from "drizzle-orm";
+import { DashboardPageHeader } from "@/components/dashboard-page-header";
 import { MODULE_WIDGET_LOADERS } from "@/lib/widget-registry";
 import { BUILTIN_WIDGETS, type BuiltinWidgetConfig, type WidgetStatData } from "@/lib/builtin-widgets";
 import { WidgetArea } from "./_components/widget-area";
@@ -95,14 +96,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8">
-
-      {/* ── Header ───────────────────────────────────────────────── */}
-      <div>
-        <p className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
-          {now.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
-        </p>
-        <h1 className="mt-1 text-xl font-semibold tracking-tight text-foreground">Dashboard</h1>
-      </div>
+      <DashboardPageHeader title="Dashboard" />
 
       {/* ── Builtin wigggle-ui widgets ───────────────────────────── */}
       {hasBuiltinWidgets && (

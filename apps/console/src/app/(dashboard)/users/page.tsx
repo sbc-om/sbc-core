@@ -2,6 +2,7 @@ import Link from "next/link";
 import { HiArrowRight, HiMiniUserGroup } from "react-icons/hi2";
 import { listUsers } from "@sbc/module-iam/services";
 import { buildDocumentUrl, extractDocumentId } from "@/lib/documents";
+import { DashboardPageHeader } from "@/components/dashboard-page-header";
 import { CreateUserDialog } from "./_components/create-user-dialog";
 import { ToggleActiveButton } from "./_components/toggle-active-button";
 
@@ -10,13 +11,7 @@ export default async function UsersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">Users</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Manage platform users and their access.</p>
-        </div>
-        <CreateUserDialog />
-      </div>
+      <DashboardPageHeader title="Users" actions={<CreateUserDialog />} />
 
       <div className="app-surface overflow-hidden">
         {users.length === 0 ? (

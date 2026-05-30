@@ -49,7 +49,7 @@ export function ShellLayout({ menus, user, children }: Props) {
           user={user}
           onMenuToggle={() => setSidebarOpen((p) => !p)}
         />
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+        <main data-os-scroll="true" className="flex-1 overflow-y-auto p-4 sm:p-6">
           {children}
         </main>
       </div>

@@ -1,4 +1,5 @@
 import { db, modules as modulesTable } from "@sbc/database";
+import { DashboardPageHeader } from "@/components/dashboard-page-header";
 import { MarketplaceClient } from "./_components/marketplace-client";
 import { SyncMenusButton } from "@/components/sync-menus-button";
 import { CATALOG } from "./_data/catalog";
@@ -115,16 +116,7 @@ export default async function MarketplacePage() {
 
   return (
     <div className="space-y-6">
-      {/* Page header */}
-      <div className="app-page-header flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">Marketplace</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Discover, install, and manage modules that extend your platform.
-          </p>
-        </div>
-        <SyncMenusButton />
-      </div>
+      <DashboardPageHeader title="Marketplace" actions={<SyncMenusButton />} />
 
       <MarketplaceClient
         entries={entries}

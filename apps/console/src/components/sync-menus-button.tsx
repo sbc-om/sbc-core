@@ -27,7 +27,7 @@ export function SyncMenusButton() {
       disabled={pending}
       onClick={handle}
       title="Re-register all core module menus and permissions"
-      className="inline-flex h-10 items-center gap-2 whitespace-nowrap rounded-md border border-border bg-background px-3.5 text-sm font-semibold text-muted-foreground shadow-sm transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+      className="inline-flex h-9 items-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-background px-3 text-xs font-semibold text-muted-foreground shadow-sm transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50 sm:text-sm"
     >
       <HiMiniArrowPath className={`h-4 w-4 ${pending ? "animate-spin" : ""}`} />
       {pending ? "Syncing…" : "Sync Menus"}

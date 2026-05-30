@@ -1,6 +1,7 @@
 import { db, auditLogs } from "@sbc/database";
 import { desc } from "drizzle-orm";
 import { PiScrollDuotone } from "react-icons/pi";
+import { DashboardPageHeader } from "@/components/dashboard-page-header";
 
 export default async function AuditPage() {
   const logs = await db
@@ -17,10 +18,7 @@ export default async function AuditPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">Audit Log</h1>
-        <p className="mt-1 text-sm text-muted-foreground">A complete trail of all system actions.</p>
-      </div>
+      <DashboardPageHeader title="Audit Log" />
 
       <div className="overflow-hidden rounded-lg border border-border bg-background">
         {logs.length === 0 ? (

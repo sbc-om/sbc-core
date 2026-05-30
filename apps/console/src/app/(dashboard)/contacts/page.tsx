@@ -6,6 +6,7 @@ import {
   HiMiniPhone,
 } from "react-icons/hi2";
 import { listContacts } from "@sbc/module-contacts/services";
+import { DashboardPageHeader } from "@/components/dashboard-page-header";
 import { CreateContactDialog } from "./_components/create-contact-dialog";
 import { DeleteContactButton } from "./_components/delete-contact-button";
 
@@ -20,17 +21,7 @@ export default async function ContactsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">Contacts</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {contacts.length > 0
-              ? `${contacts.length} contact${contacts.length !== 1 ? "s" : ""}`
-              : "Store and manage people and organizations."}
-          </p>
-        </div>
-        <CreateContactDialog />
-      </div>
+      <DashboardPageHeader title="Contacts" actions={<CreateContactDialog />} />
 
       <div className="overflow-hidden rounded-lg border border-border bg-background">
         {contacts.length === 0 ? (

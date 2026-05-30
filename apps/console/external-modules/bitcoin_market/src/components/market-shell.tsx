@@ -11,13 +11,17 @@ export function BitcoinMarketShell({
 }) {
   return (
     <div className="space-y-6">
-      <header className="rounded-xl border border-border bg-background px-6 py-5 shadow-sm">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
+      <header className="rounded-lg border border-border bg-background px-5 py-5 shadow-sm sm:px-6">
+        <div className="flex items-start justify-between gap-3 sm:gap-4">
+          <div className="min-w-0 flex-1">
+            <h1 className="truncate text-lg font-semibold tracking-tight text-foreground sm:text-xl md:text-2xl">{title}</h1>
+          </div>
+        </div>
       </header>
 
       {metrics ? <section className="grid gap-4 lg:grid-cols-4">{metrics}</section> : null}
 
-      <section className="rounded-xl border border-border bg-background p-6 shadow-sm">
+      <section className="rounded-lg border border-border bg-background p-5 shadow-sm sm:p-6">
         {children}
       </section>
     </div>

@@ -1,5 +1,6 @@
 import { HiMiniChartBar } from "react-icons/hi2";
 import { listLeads, listPipelines } from "@/actions/crm";
+import { DashboardPageHeader } from "@/components/dashboard-page-header";
 import { CreateLeadDialog } from "./_components/create-lead-dialog";
 import { KanbanBoard } from "./_components/kanban-board";
 
@@ -22,18 +23,7 @@ export default async function CrmLeadsPage() {
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-6 overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">Leads</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {leads.length > 0
-              ? `${leads.length} lead${leads.length !== 1 ? "s" : ""} · ${wonCount} won`
-              : "Track sales opportunities and move them through your pipeline."}
-          </p>
-        </div>
-        <CreateLeadDialog />
-      </div>
+      <DashboardPageHeader title="Leads" actions={<CreateLeadDialog />} />
 
       {/* Stats row */}
       {leads.length > 0 && (

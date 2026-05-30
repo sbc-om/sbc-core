@@ -68,8 +68,8 @@ function SidebarItem({ item, depth = 0, pathname, LinkComponent }: SidebarItemPr
     <>
       <span
         className={cn(
-          "flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-white/10 bg-white/5 text-sm text-sidebar-foreground/80",
-          isActive && "border-white/20 bg-white/10 text-sidebar-accent-foreground"
+          "flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-sidebar-border/80 bg-sidebar-accent/45 text-sm text-sidebar-foreground/80",
+          isActive && "border-sidebar-border bg-sidebar-accent text-sidebar-accent-foreground"
         )}
       >
         {Icon ? <Icon className="h-4 w-4" /> : <HiMiniCube className="h-4 w-4" />}
@@ -143,10 +143,10 @@ export interface SidebarProps {
 
 export function Sidebar({ menus, appName = "SBC", pathname, LinkComponent, className, onClose }: SidebarProps) {
   return (
-    <aside className={cn("flex h-full w-64 flex-col border-r border-sidebar-border bg-sidebar", className)}>
+    <aside data-os-scroll="true" className={cn("flex h-full w-64 flex-col border-r border-sidebar-border bg-sidebar", className)}>
       <div className="flex items-center justify-between border-b border-sidebar-border px-4 py-3">
         <div className="flex items-center gap-2.5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-white/5 text-sidebar-foreground">
+          <span className="flex h-8 w-8 items-center justify-center rounded-md border border-sidebar-border/80 bg-sidebar-accent/45 text-sidebar-foreground">
             <HiMiniChartBar className="h-4 w-4" />
           </span>
           <div>
@@ -165,7 +165,7 @@ export function Sidebar({ menus, appName = "SBC", pathname, LinkComponent, class
         )}
       </div>
 
-      <nav className="flex-1 overflow-y-auto p-2">
+      <nav data-os-scroll="true" className="flex-1 overflow-y-auto p-2">
         <ul className="space-y-0.5">
           {menus
             .sort((a, b) => a.order - b.order)

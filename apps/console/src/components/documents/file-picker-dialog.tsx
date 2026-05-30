@@ -314,7 +314,7 @@ export function FilePickerDialog({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground transition hover:bg-muted"
+        className="inline-flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground transition hover:bg-muted sm:w-auto"
       >
         <HiMiniFolderOpen className="h-3.5 w-3.5" />
         {buttonLabel}

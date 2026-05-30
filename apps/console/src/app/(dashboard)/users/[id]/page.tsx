@@ -60,7 +60,7 @@ export default async function UserDetailPage({ params }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Link
           href="/users"
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -73,7 +73,7 @@ export default async function UserDetailPage({ params }: Props) {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="app-surface p-6">
+        <section className="app-surface p-5 sm:p-6">
           <h2 className="mb-4 text-sm font-semibold text-foreground">Profile</h2>
           <ProfileForm
             user={{ id: user.id, name: user.name, email: user.email, avatarUrl: user.avatarUrl }}
@@ -82,7 +82,7 @@ export default async function UserDetailPage({ params }: Props) {
           />
         </section>
 
-        <section className="app-surface p-6">
+        <section className="app-surface p-5 sm:p-6">
           <div className="mb-4">
             <h2 className="text-sm font-semibold text-foreground">Roles</h2>
             <p className="mt-0.5 text-xs text-muted-foreground">Check roles to assign them to this user.</p>
@@ -95,7 +95,7 @@ export default async function UserDetailPage({ params }: Props) {
         </section>
       </div>
 
-      <section className="app-surface p-6">
+      <section className="app-surface p-5 sm:p-6">
         <div className="mb-4">
           <h2 className="text-sm font-semibold text-foreground">Linked Files</h2>
           <p className="mt-0.5 text-xs text-muted-foreground">File attachments linked to this user record.</p>

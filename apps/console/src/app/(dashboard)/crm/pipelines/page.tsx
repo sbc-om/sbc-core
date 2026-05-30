@@ -1,5 +1,6 @@
 import { HiMiniSquares2X2, HiMiniCheckCircle, HiMiniChevronRight } from "react-icons/hi2";
 import { listPipelines } from "@/actions/crm";
+import { DashboardPageHeader } from "@/components/dashboard-page-header";
 import { CreatePipelineDialog } from "./_components/create-pipeline-dialog";
 import { DeletePipelineButton } from "./_components/delete-pipeline-button";
 
@@ -17,18 +18,7 @@ export default async function CrmPipelinesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">Pipelines</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {pipelines.length > 0
-              ? `${pipelines.length} pipeline${pipelines.length !== 1 ? "s" : ""}`
-              : "Define sales stages to track your leads through the funnel."}
-          </p>
-        </div>
-        <CreatePipelineDialog />
-      </div>
+      <DashboardPageHeader title="Pipelines" actions={<CreatePipelineDialog />} />
 
       {/* Empty state */}
       {pipelines.length === 0 && (

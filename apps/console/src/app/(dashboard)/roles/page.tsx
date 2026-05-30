@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { HiArrowRight, HiMiniShieldCheck } from "react-icons/hi2";
 import { listRoles } from "@sbc/module-iam/services";
+import { DashboardPageHeader } from "@/components/dashboard-page-header";
 import { CreateRoleDialog } from "./_components/create-role-dialog";
 import { DeleteRoleButton } from "./_components/delete-role-button";
 
@@ -9,13 +10,7 @@ export default async function RolesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">Roles</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Define roles and assign permissions.</p>
-        </div>
-        <CreateRoleDialog />
-      </div>
+      <DashboardPageHeader title="Roles" actions={<CreateRoleDialog />} />
 
       <div className="overflow-hidden rounded-lg border border-border bg-background">
         {roles.length === 0 ? (

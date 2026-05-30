@@ -262,7 +262,7 @@ export function KanbanBoard({ initialLeads, stageOrder }: { initialLeads: CrmLea
       onDragCancel={() => setActiveLeadId(null)}
     >
       <div className="flex h-full min-h-0 flex-col overflow-hidden p-4">
-        <div className="h-full overflow-x-auto overflow-y-hidden">
+        <div data-os-scroll="true" className="h-full overflow-x-auto overflow-y-hidden">
           <div className="grid h-full min-w-max gap-4 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6">
             {stageColumns.map((column) => (
               <KanbanColumn

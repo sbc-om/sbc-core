@@ -1,36 +1,28 @@
 import type { ReactNode } from "react";
+import { DashboardPageHeader } from "@/components/dashboard-page-header";
 
 export function CallCenterPageShell({
-  eyebrow,
   title,
-  description,
   actions,
   metrics,
   children,
 }: {
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
-  description: string;
+  description?: string;
   actions?: ReactNode;
   metrics?: ReactNode;
   children: ReactNode;
 }) {
   return (
     <div className="space-y-6">
-      <header className="rounded-3xl border border-border bg-background px-5 py-5 shadow-sm sm:px-6 sm:py-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-700">{eyebrow}</p>
-            <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">{title}</h1>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">{description}</p>
-          </div>
-          {actions ? <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">{actions}</div> : null}
-        </div>
+      <header className="rounded-lg border border-border bg-background px-5 py-5 shadow-sm sm:px-6 sm:py-6">
+        <DashboardPageHeader title={title} actions={actions} />
       </header>
 
       {metrics ? <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{metrics}</section> : null}
 
-      <section className="rounded-3xl border border-border bg-background p-5 shadow-sm sm:p-6">
+      <section className="rounded-lg border border-border bg-background p-5 shadow-sm sm:p-6">
         {children}
       </section>
     </div>
@@ -41,7 +33,7 @@ export function CallCenterActionButton({ label }: { label: string }) {
   return (
     <button
       type="button"
-      className="inline-flex w-full items-center justify-center rounded-xl bg-foreground px-4 py-2.5 text-sm font-semibold text-background transition hover:opacity-90 sm:w-auto"
+      className="inline-flex h-9 w-full items-center justify-center rounded-md bg-foreground px-3 text-xs font-semibold text-background transition hover:opacity-90 sm:w-auto sm:text-sm"
     >
       {label}
     </button>
@@ -58,10 +50,25 @@ export function MetricCard({
   hint?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-background p-5 shadow-sm">
+    <div className="rounded-lg border border-border bg-background p-5 shadow-sm">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
       <p className="mt-3 text-3xl font-semibold tracking-tight text-foreground">{value}</p>
       {hint ? <p className="mt-1 text-sm text-muted-foreground">{hint}</p> : null}
+    </div>
+  );
+}
+
+export function CallCenterEmptyState({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="rounded-lg border border-dashed border-border bg-muted/20 px-5 py-10 text-center sm:px-6">
+      <p className="text-sm font-semibold text-foreground">{title}</p>
+      <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">{description}</p>
     </div>
   );
 }

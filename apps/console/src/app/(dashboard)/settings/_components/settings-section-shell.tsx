@@ -1,14 +1,15 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { HiMiniArrowLeft } from "react-icons/hi2";
+import { DashboardPageHeader } from "@/components/dashboard-page-header";
 
 interface Props {
   title: string;
-  description: string;
+  description?: string;
   children: ReactNode;
 }
 
-export function SettingsSectionShell({ title, description, children }: Props) {
+export function SettingsSectionShell({ title, children }: Props) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2 text-sm">
@@ -22,10 +23,7 @@ export function SettingsSectionShell({ title, description, children }: Props) {
       </div>
 
       <section className="app-page-header">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground">{title}</h1>
-          <p className="text-sm text-muted-foreground">{description}</p>
-        </div>
+        <DashboardPageHeader title={title} />
       </section>
 
       {children}
