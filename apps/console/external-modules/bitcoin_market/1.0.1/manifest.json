@@ -1,0 +1,56 @@
+{
+  "name": "bitcoin_market",
+  "title": "Bitcoin Market",
+  "description": "Standalone live Bitcoin market desk with Binance-powered BTC/USDT pricing, intraday charting, and a dashboard widget for real-time monitoring.",
+  "version": "1.0.1",
+  "author": "SBC Team",
+  "category": "finance",
+  "depends": ["base"],
+  "optional_depends": [],
+  "conflicts": [],
+  "permissions": [
+    { "key": "bitcoin_market.view", "label": "View bitcoin market desk" }
+  ],
+  "menus": [
+    {
+      "key": "bitcoin_market.root",
+      "label": "Bitcoin",
+      "icon": "Bitcoin",
+      "order": 55,
+      "permission": "bitcoin_market.view",
+      "children": [
+        {
+          "key": "bitcoin_market.overview",
+          "label": "Overview",
+          "href": "/bitcoin-market",
+          "order": 1,
+          "permission": "bitcoin_market.view"
+        }
+      ]
+    }
+  ],
+  "routes": [
+    {
+      "path": "/bitcoin-market",
+      "handler": "@bitcoin_market/pages/overview-page",
+      "type": "page",
+      "meta": { "permission": "bitcoin_market.view" }
+    }
+  ],
+  "settings": [
+    {
+      "key": "bitcoin_market.default_symbol",
+      "label": "Default Trading Pair",
+      "type": "text",
+      "scope": "tenant",
+      "default": "BTCUSDT"
+    }
+  ],
+  "events": {
+    "emits": [],
+    "listens": []
+  },
+  "auto_install": false,
+  "installable": true,
+  "application": true
+}

@@ -15,7 +15,7 @@ import {
   HiMiniUserGroup,
   HiMiniXMark,
 } from "react-icons/hi2";
-import { PiScrollDuotone } from "react-icons/pi";
+import { PiCurrencyBtcBold, PiScrollDuotone } from "react-icons/pi";
 import type { IconType } from "react-icons";
 import { cn } from "../lib/utils";
 
@@ -31,6 +31,7 @@ const iconMap: Record<string, IconType> = {
   SlidersHorizontal: HiMiniCog6Tooth,
   Store:            HiMiniShoppingBag,
   Phone:            HiMiniPhone,
+  Bitcoin:          PiCurrencyBtcBold,
 };
 
 export interface SidebarMenuItem {

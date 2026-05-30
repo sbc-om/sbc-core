@@ -8,10 +8,9 @@ import type { ModuleManifest } from "@sbc/sdk";
 import { compareModuleVersions } from "@/lib/module-version";
 
 export const EXTERNAL_MODULES_DIR = path.join(process.cwd(), "external-modules");
-const WORKSPACE_ROOT = path.resolve(process.cwd(), "..", "..");
 
 interface ModuleSource {
-  kind: "versioned-external" | "legacy-external" | "workspace";
+  kind: "versioned-external" | "legacy-external";
   manifestPath: string;
   modulePath: string;
 }
@@ -72,23 +71,7 @@ async function collectVersionedExternalSources(): Promise<ModuleSource[]> {
 }
 
 async function collectModuleSources(): Promise<ModuleSource[]> {
-  const sources: ModuleSource[] = await collectVersionedExternalSources();
-
-  try {
-    const entries = await fs.readdir(WORKSPACE_ROOT, { withFileTypes: true });
-    for (const entry of entries) {
-      if (!entry.isDirectory() || !entry.name.endsWith("-module")) continue;
-      sources.push({
-        kind: "workspace",
-        manifestPath: path.join(WORKSPACE_ROOT, entry.name, "manifest.json"),
-        modulePath: path.join(WORKSPACE_ROOT, entry.name),
-      });
-    }
-  } catch {
-    // ignore inaccessible workspace root
-  }
-
-  return sources;
+  return collectVersionedExternalSources();
 }
 
 async function getLatestExternalModuleDescriptors(): Promise<ExternalModuleDescriptor[]> {
@@ -98,7 +81,11 @@ async function getLatestExternalModuleDescriptors(): Promise<ExternalModuleDescr
   for (const source of sources) {
     const manifest = await readManifest(source);
 
-    if (!manifest?.name) {
+    if (!manifest) {
+      continue;
+    }
+
+    if (!manifest.name) {
       console.warn(`[external-modules] Skipping ${source.modulePath}: manifest.name missing or invalid`);
       continue;
     }

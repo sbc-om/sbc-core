@@ -8,9 +8,23 @@
  * Adding a new module widget: add one entry to MODULE_WIDGET_LOADERS below.
  */
 
+import type { BitcoinMarketSnapshot } from "@/../external-modules/bitcoin_market/src";
+
 export interface WidgetStat {
   label: string;
   value: number | string;
+}
+
+export interface WidgetBadge {
+  label: string;
+  tone: "default" | "success" | "danger";
+}
+
+export interface WidgetMeta {
+  left: string;
+  leftLabel: string;
+  right: string;
+  rightLabel: string;
 }
 
 export interface WidgetData {
@@ -18,9 +32,14 @@ export interface WidgetData {
   title:      string;
   icon:       string;       // key into MODULE_ICONS map
   href:       string;       // link destination
-  primary:    number;       // the main big number
+  primary:    number | string;
   primaryLabel: string;     // label under the big number
   stats:      WidgetStat[]; // secondary stats row
+  badge?:     WidgetBadge;
+  accentTone?: "default" | "success" | "danger";
+  sparkline?: number[];
+  meta?:      WidgetMeta;
+  liveSnapshot?: BitcoinMarketSnapshot;
 }
 
 type WidgetLoader = (tenantId: string) => Promise<WidgetData>;
@@ -41,5 +60,9 @@ export const MODULE_WIDGET_LOADERS: Record<string, WidgetLoader> = {
         { label: "With phone", value: data.withPhone },
       ],
     };
+  },
+  bitcoin_market: async () => {
+    const { getBitcoinWidgetData } = await import("@/../external-modules/bitcoin_market/src");
+    return getBitcoinWidgetData();
   },
 };

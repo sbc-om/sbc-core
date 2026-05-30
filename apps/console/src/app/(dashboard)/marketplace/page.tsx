@@ -3,6 +3,7 @@ import { MarketplaceClient } from "./_components/marketplace-client";
 import { SyncMenusButton } from "@/components/sync-menus-button";
 import { CATALOG } from "./_data/catalog";
 import { listExternalModuleManifests } from "@/lib/external-modules";
+import { compareModuleVersions } from "@/lib/module-version";
 import type { CatalogStatus, CatalogModule } from "./_data/catalog";
 import type { ModuleState } from "@sbc/database";
 
@@ -67,6 +68,7 @@ export default async function MarketplacePage() {
         module:           mod,
         status,
         installedVersion: row?.installedVersion ?? null,
+        hasUpgrade:       !!row?.installedVersion && compareModuleVersions(mod.version, row.installedVersion) > 0,
         isExternal:       false,
       };
     });
@@ -100,6 +102,7 @@ export default async function MarketplacePage() {
         module:           mod,
         status,
         installedVersion: row?.installedVersion ?? null,
+        hasUpgrade:       !!row?.installedVersion && compareModuleVersions(mod.version, row.installedVersion) > 0,
         isExternal:       true,
       };
     });

@@ -62,9 +62,10 @@ interface Props {
   module:           CatalogModule;
   status:           CatalogStatus;
   installedVersion: string | null;
+  hasUpgrade:       boolean;
 }
 
-export function ModuleCard({ module: mod, status, installedVersion }: Props) {
+export function ModuleCard({ module: mod, status, installedVersion, hasUpgrade }: Props) {
   const Icon         = MODULE_ICONS[mod.icon] ?? HiMiniCog6Tooth;
   const pricing      = PRICING[mod.pricing];
   const statusCfg    = STATUS[status];
@@ -145,7 +146,9 @@ export function ModuleCard({ module: mod, status, installedVersion }: Props) {
       <div className="flex items-center justify-between border-t border-border bg-muted/20 px-5 py-3">
         <div className="flex items-baseline gap-2">
           <span className="font-mono text-[10px] text-muted-foreground/60">
-            v{installedVersion ?? mod.version}
+            {hasUpgrade && installedVersion
+              ? `v${installedVersion} -> v${mod.version}`
+              : `v${installedVersion ?? mod.version}`}
           </span>
           {mod.priceLabel && (
             <span className="text-[11px] font-semibold text-foreground">
@@ -160,6 +163,7 @@ export function ModuleCard({ module: mod, status, installedVersion }: Props) {
           status={status}
           pricing={mod.pricing}
           installable={mod.installable}
+          hasUpgrade={hasUpgrade}
         />
       </div>
     </div>

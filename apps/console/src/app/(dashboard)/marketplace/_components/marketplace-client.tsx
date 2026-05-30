@@ -38,6 +38,7 @@ interface MarketplaceEntry {
   module:           CatalogModule;
   status:           CatalogStatus;
   installedVersion: string | null;
+  hasUpgrade:       boolean;
   isExternal?:      boolean;
 }
 
@@ -71,7 +72,7 @@ export function MarketplaceClient({ entries, stats }: Props) {
 
   const installed  = filtered.filter((e) => e.status === "installed" || e.status === "core");
   const available  = filtered.filter((e) => (e.status === "available" || e.status === "error" || e.status === "in_progress") && !e.isExternal);
-  const external   = filtered.filter((e) => e.isExternal);
+  const external   = filtered.filter((e) => e.isExternal && e.status !== "installed" && e.status !== "core");
   const comingSoon = filtered.filter((e) => e.status === "coming_soon");
   const isEmpty    = filtered.length === 0;
 
@@ -85,7 +86,7 @@ export function MarketplaceClient({ entries, stats }: Props) {
       <div className="space-y-4">
 
         {/* Search + Upload */}
-        <div className="flex gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row">
           <div className="relative flex-1">
             <HiMiniMagnifyingGlass className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
@@ -107,7 +108,7 @@ export function MarketplaceClient({ entries, stats }: Props) {
           <button
             type="button"
             onClick={() => setUploadOpen(true)}
-            className="inline-flex h-[42px] shrink-0 items-center gap-2 rounded-md border border-border bg-background px-4 text-xs font-semibold text-foreground transition-colors hover:bg-muted whitespace-nowrap"
+            className="inline-flex h-[42px] w-full shrink-0 items-center justify-center gap-2 rounded-md border border-border bg-background px-4 text-xs font-semibold text-foreground transition-colors hover:bg-muted whitespace-nowrap sm:w-auto"
           >
             <HiMiniDocumentArrowUp className="h-4 w-4" />
             Upload Module
@@ -198,7 +199,7 @@ export function MarketplaceClient({ entries, stats }: Props) {
           />
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {installed.map((e) => (
-              <ModuleCard key={e.module.name} module={e.module} status={e.status} installedVersion={e.installedVersion} />
+              <ModuleCard key={e.module.name} module={e.module} status={e.status} installedVersion={e.installedVersion} hasUpgrade={e.hasUpgrade} />
             ))}
           </div>
         </section>
@@ -214,7 +215,7 @@ export function MarketplaceClient({ entries, stats }: Props) {
           />
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {available.map((e) => (
-              <ModuleCard key={e.module.name} module={e.module} status={e.status} installedVersion={e.installedVersion} />
+              <ModuleCard key={e.module.name} module={e.module} status={e.status} installedVersion={e.installedVersion} hasUpgrade={e.hasUpgrade} />
             ))}
           </div>
         </section>
@@ -231,7 +232,7 @@ export function MarketplaceClient({ entries, stats }: Props) {
           />
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {external.map((e) => (
-              <ModuleCard key={e.module.name} module={e.module} status={e.status} installedVersion={e.installedVersion} />
+              <ModuleCard key={e.module.name} module={e.module} status={e.status} installedVersion={e.installedVersion} hasUpgrade={e.hasUpgrade} />
             ))}
           </div>
         </section>
@@ -247,7 +248,7 @@ export function MarketplaceClient({ entries, stats }: Props) {
           />
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {comingSoon.map((e) => (
-              <ModuleCard key={e.module.name} module={e.module} status={e.status} installedVersion={e.installedVersion} />
+              <ModuleCard key={e.module.name} module={e.module} status={e.status} installedVersion={e.installedVersion} hasUpgrade={e.hasUpgrade} />
             ))}
           </div>
         </section>

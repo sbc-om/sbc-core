@@ -2,11 +2,13 @@ import { db, modules as modulesTable } from "@sbc/database";
 import type { ModuleManifest } from "@sbc/sdk";
 import { moduleRegistry } from "./registry";
 import { topologicalSort, detectCircularDeps } from "./resolver";
-import { upgradeModule } from "./installer";
 
 /**
  * Bootstraps the kernel by loading all registered modules in dependency order.
- * Syncs registry state with the database and triggers upgrades for outdated modules.
+ * Syncs registry state with the database.
+ *
+ * Version upgrades are intentionally explicit and must run through the
+ * install/update actions, not as a startup side effect.
  */
 export async function bootstrapKernel(): Promise<void> {
   const cycles = detectCircularDeps(
@@ -34,18 +36,6 @@ export async function bootstrapKernel(): Promise<void> {
           dbRecord.installedVersion
         );
       }
-    }
-  }
-
-  // Trigger upgrades for modules with a newer version
-  const installed = moduleRegistry.getInstalled();
-  for (const entry of installed) {
-    const { manifest, installedVersion } = entry;
-    if (installedVersion && installedVersion !== manifest.version) {
-      console.warn(
-        `[kernel] Module ${manifest.name}: upgrade ${installedVersion} → ${manifest.version}`
-      );
-      await upgradeModule(manifest, installedVersion);
     }
   }
 }

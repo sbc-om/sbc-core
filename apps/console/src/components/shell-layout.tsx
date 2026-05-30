@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { NavigationSidebar } from "./navigation-sidebar";
 import { UserHeader } from "./user-header";
 import type { SidebarMenuItem } from "@sbc/ui";
@@ -13,6 +14,11 @@ interface Props {
 
 export function ShellLayout({ menus, user, children }: Props) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
 
   return (
     <div className="flex h-screen overflow-hidden bg-muted/30">
@@ -24,8 +30,11 @@ export function ShellLayout({ menus, user, children }: Props) {
       )}
 
       <div
-        className={`fixed inset-y-0 left-0 z-30 transition-transform duration-200 ease-in-out lg:static lg:shrink-0 lg:translate-x-0 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        aria-hidden={!sidebarOpen}
+        className={`fixed inset-y-0 left-0 z-30 w-[85vw] max-w-64 transition-transform duration-200 ease-in-out lg:static lg:w-auto lg:max-w-none lg:shrink-0 lg:translate-x-0 ${
+          sidebarOpen
+            ? "translate-x-0 pointer-events-auto"
+            : "-translate-x-full pointer-events-none lg:pointer-events-auto"
         }`}
       >
         <NavigationSidebar

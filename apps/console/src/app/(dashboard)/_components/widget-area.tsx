@@ -37,10 +37,15 @@ import {
   HiMiniUserGroup,
   HiMiniCpuChip,
 } from "react-icons/hi2";
+import { PiCurrencyBtcBold } from "react-icons/pi";
 import Link from "next/link";
 import { saveWidgetLayout, type WidgetLayoutItem } from "@/actions/widget-layout";
 import { useToast } from "@/components/system-feedback";
 import type { WidgetData } from "@/lib/widget-registry";
+import { formatCompactNumber, formatPercent, formatUsd } from "@/../external-modules/bitcoin_market/src/lib/format";
+import { Sparkline } from "@/../external-modules/bitcoin_market/src/components/sparkline";
+import { useBitcoinLiveMarket } from "@/../external-modules/bitcoin_market/src/lib/use-live-market";
+import type { BitcoinMarketSnapshot } from "@/../external-modules/bitcoin_market/src/lib/types";
 
 const ICON_MAP: Record<string, ComponentType<{ className?: string }>> = {
   cpu:            HiMiniCpuChip,
@@ -55,7 +60,32 @@ const ICON_MAP: Record<string, ComponentType<{ className?: string }>> = {
   phone:          HiMiniPhone,
   sparkles:       HiMiniSparkles,
   cog:            HiMiniCog6Tooth,
+  bitcoin:        PiCurrencyBtcBold,
 };
+
+const BADGE_STYLES = {
+  default: "border-border bg-muted text-muted-foreground",
+  success: "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-500/10 dark:text-emerald-300",
+  danger:  "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-400/20 dark:bg-rose-500/10 dark:text-rose-300",
+} as const;
+
+const ACCENT_STYLES = {
+  default: {
+    panel: "bg-muted/20",
+    stroke: "#94a3b8",
+    fill: "rgba(148, 163, 184, 0.12)",
+  },
+  success: {
+    panel: "bg-emerald-50/70 dark:bg-emerald-500/10",
+    stroke: "#10b981",
+    fill: "rgba(16, 185, 129, 0.14)",
+  },
+  danger: {
+    panel: "bg-rose-50/70 dark:bg-rose-500/10",
+    stroke: "#f43f5e",
+    fill: "rgba(244, 63, 94, 0.14)",
+  },
+} as const;
 
 interface WidgetEntry {
   data: WidgetData;
@@ -95,6 +125,10 @@ function SortableWidgetCard({
 
   const Icon = ICON_MAP[entry.data.icon] ?? HiMiniCube;
   const { data } = entry;
+  const badgeTone = data.badge?.tone ?? "default";
+  const accentTone = data.accentTone ?? "default";
+  const accent = ACCENT_STYLES[accentTone];
+  const liveSnapshot = data.liveSnapshot;
 
   return (
     <div
@@ -122,6 +156,12 @@ function SortableWidgetCard({
 
         <p className="flex-1 text-sm font-semibold text-foreground">{data.title}</p>
 
+        {data.badge && (
+          <span className={`hidden rounded-md border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] sm:inline-flex ${BADGE_STYLES[badgeTone]}`}>
+            {data.badge.label}
+          </span>
+        )}
+
         {/* Toggle visibility */}
         <button
           type="button"
@@ -143,29 +183,122 @@ function SortableWidgetCard({
         </Link>
       </div>
 
-      {/* Body — primary stat */}
-      <div className="flex flex-1 flex-col items-center justify-center gap-1 px-5 py-8">
-        <p className="text-4xl font-semibold tabular-nums text-foreground">{data.primary}</p>
-        <p className="mt-0.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          {data.primaryLabel}
-        </p>
-      </div>
-
-      {/* Footer — secondary stats */}
-      {data.stats.length > 0 && (
-        <div
-          className="grid divide-x divide-border border-t border-border"
-          style={{ gridTemplateColumns: `repeat(${data.stats.length}, 1fr)` }}
-        >
-          {data.stats.map((stat) => (
-            <div key={stat.label} className="flex flex-col items-center gap-0.5 px-4 py-3">
-              <p className="text-sm font-semibold tabular-nums text-foreground">{stat.value}</p>
-              <p className="text-[11px] text-muted-foreground">{stat.label}</p>
+      {liveSnapshot ? (
+        <BitcoinLiveMetrics snapshot={liveSnapshot} />
+      ) : (
+        <>
+          {/* Body — primary stat */}
+          <div className="flex flex-1 flex-col gap-4 px-5 py-5">
+            <div className="flex items-end justify-between gap-3">
+              <div>
+                <p className="text-3xl font-semibold tabular-nums tracking-tight text-foreground">{data.primary}</p>
+                <p className="mt-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  {data.primaryLabel}
+                </p>
+              </div>
+              {data.badge && (
+                <span className={`inline-flex rounded-md border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] sm:hidden ${BADGE_STYLES[badgeTone]}`}>
+                  {data.badge.label}
+                </span>
+              )}
             </div>
-          ))}
-        </div>
+
+            {data.sparkline && data.sparkline.length > 1 ? (
+              <div className={`rounded-md border border-border px-3 py-3 ${accent.panel}`}>
+                <Sparkline
+                  points={data.sparkline}
+                  stroke={accent.stroke}
+                  fill={accent.fill}
+                  className="h-14 w-full"
+                />
+              </div>
+            ) : null}
+
+            {data.meta ? (
+              <div className="grid grid-cols-2 gap-3 text-center">
+                <div className="rounded-md border border-border bg-muted/20 px-3 py-2">
+                  <p className="text-sm font-semibold tabular-nums text-foreground">{data.meta.left}</p>
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">{data.meta.leftLabel}</p>
+                </div>
+                <div className="rounded-md border border-border bg-muted/20 px-3 py-2">
+                  <p className="text-sm font-semibold tabular-nums text-foreground">{data.meta.right}</p>
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">{data.meta.rightLabel}</p>
+                </div>
+              </div>
+            ) : null}
+          </div>
+
+          {/* Footer — secondary stats */}
+          {data.stats.length > 0 && (
+            <div
+              className="grid divide-x divide-border border-t border-border"
+              style={{ gridTemplateColumns: `repeat(${data.stats.length}, 1fr)` }}
+            >
+              {data.stats.map((stat) => (
+                <div key={stat.label} className="flex flex-col items-center gap-0.5 px-4 py-3">
+                  <p className="text-sm font-semibold tabular-nums text-foreground">{stat.value}</p>
+                  <p className="text-[11px] text-muted-foreground">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
+  );
+}
+
+function BitcoinLiveMetrics({ snapshot }: { snapshot: BitcoinMarketSnapshot }) {
+  const state = useBitcoinLiveMarket(snapshot, { sparklineLimit: 24, tradeLimit: 0 });
+  const tone = state.priceChangePercent >= 0 ? "success" : "danger";
+  const accent = ACCENT_STYLES[tone];
+  const badgeLabel = state.priceChangePercent >= 0 ? "Bullish" : "Pullback";
+
+  return (
+    <>
+      <div className="flex flex-1 flex-col gap-4 px-5 py-5">
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <p className="text-3xl font-semibold tabular-nums tracking-tight text-foreground">{formatUsd(state.lastPrice)}</p>
+            <p className="mt-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              BTC/USDT
+            </p>
+          </div>
+          <span className={`inline-flex rounded-md border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] sm:hidden ${BADGE_STYLES[tone]}`}>
+            {badgeLabel}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 text-center">
+          <div className="rounded-md border border-border bg-muted/20 px-3 py-2">
+            <p className="text-sm font-semibold tabular-nums text-foreground">{formatCompactNumber(state.quoteVolume, 1)}</p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">24h volume</p>
+          </div>
+          <div className="rounded-md border border-border bg-muted/20 px-3 py-2">
+            <p className="text-sm font-semibold tabular-nums text-foreground">{formatUsd(state.weightedAveragePrice, 0)}</p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">VWAP</p>
+          </div>
+        </div>
+      </div>
+
+      <div
+        className="grid divide-x divide-border border-t border-border"
+        style={{ gridTemplateColumns: "repeat(3, 1fr)" }}
+      >
+        <div className="flex flex-col items-center gap-0.5 px-4 py-3">
+          <p className="text-sm font-semibold tabular-nums text-foreground">{formatPercent(state.priceChangePercent)}</p>
+          <p className="text-[11px] text-muted-foreground">24h</p>
+        </div>
+        <div className="flex flex-col items-center gap-0.5 px-4 py-3">
+          <p className="text-sm font-semibold tabular-nums text-foreground">{formatUsd(state.highPrice, 0)}</p>
+          <p className="text-[11px] text-muted-foreground">High</p>
+        </div>
+        <div className="flex flex-col items-center gap-0.5 px-4 py-3">
+          <p className="text-sm font-semibold tabular-nums text-foreground">{formatUsd(state.lowPrice, 0)}</p>
+          <p className="text-[11px] text-muted-foreground">Low</p>
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -210,24 +343,23 @@ export function WidgetArea({ widgets, initialLayout, userId, tenantId }: Props) 
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
-    setLayout((prev) => {
-      const ids   = prev.map((i) => i.id);
-      const from  = ids.indexOf(active.id as string);
-      const to    = ids.indexOf(over.id   as string);
-      const next  = arrayMove(prev, from, to).map((item, idx) => ({ ...item, order: idx }));
-      void persistLayout(next);
-      return next;
-    });
+    const ids  = layout.map((item) => item.id);
+    const from = ids.indexOf(active.id as string);
+    const to   = ids.indexOf(over.id   as string);
+    if (from === -1 || to === -1) return;
+
+    const next = arrayMove(layout, from, to).map((item, idx) => ({ ...item, order: idx }));
+    setLayout(next);
+    void persistLayout(next);
   }
 
   function handleToggle(id: string) {
-    setLayout((prev) => {
-      const next = prev.map((item) =>
-        item.id === id ? { ...item, enabled: !item.enabled } : item,
-      );
-      void persistLayout(next);
-      return next;
-    });
+    const next = layout.map((item) => (
+      item.id === id ? { ...item, enabled: !item.enabled } : item
+    ));
+
+    setLayout(next);
+    void persistLayout(next);
   }
 
   // Map module name → widget entry
@@ -275,11 +407,9 @@ export function WidgetArea({ widgets, initialLayout, userId, tenantId }: Props) 
           <button
             type="button"
             onClick={() => {
-              setLayout((prev) => {
-                const next = prev.map((i) => ({ ...i, enabled: true }));
-                void persistLayout(next);
-                return next;
-              });
+              const next = layout.map((item) => ({ ...item, enabled: true }));
+              setLayout(next);
+              void persistLayout(next);
             }}
             className="underline underline-offset-2 hover:text-foreground"
           >

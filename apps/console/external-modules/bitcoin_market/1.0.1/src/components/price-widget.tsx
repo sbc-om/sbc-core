@@ -1,0 +1,88 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { Sparkline } from "./sparkline";
+import { formatPercent, formatUsd } from "../lib/format";
+import type { BitcoinMarketSnapshot } from "../lib/types";
+
+const STREAM_URL = "wss://stream.binance.com:9443/stream?streams=btcusdt@trade/btcusdt@ticker";
+
+export function BitcoinPriceWidget({ snapshot }: { snapshot: BitcoinMarketSnapshot }) {
+  const [price, setPrice] = useState(snapshot.lastPrice);
+  const [changePercent, setChangePercent] = useState(snapshot.priceChangePercent);
+  const [connected, setConnected] = useState(false);
+  const [points, setPoints] = useState<number[]>(() => snapshot.candles.map((candle) => candle.close));
+
+  useEffect(() => {
+    const socket = new WebSocket(STREAM_URL);
+
+    socket.onopen = () => setConnected(true);
+    socket.onclose = () => setConnected(false);
+    socket.onerror = () => setConnected(false);
+    socket.onmessage = (event) => {
+      const payload = JSON.parse(event.data) as {
+        stream?: string;
+        data?: Record<string, string | number>;
+      };
+
+      if (!payload.data || !payload.stream) return;
+
+      if (payload.stream.endsWith("@ticker")) {
+        setPrice(Number(payload.data.c ?? price));
+        setChangePercent(Number(payload.data.P ?? changePercent));
+        return;
+      }
+
+      if (payload.stream.endsWith("@trade")) {
+        const tradePrice = Number(payload.data.p ?? price);
+        setPrice(tradePrice);
+        setPoints((current) => [...current.slice(-31), tradePrice]);
+      }
+    };
+
+    return () => socket.close();
+  }, [changePercent, price]);
+
+  const tone = changePercent >= 0 ? "text-emerald-600" : "text-rose-600";
+
+  return (
+    <div className="flex flex-col rounded-lg border border-border bg-background">
+      <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">Bitcoin Market</h3>
+          </div>
+          <span className={`inline-flex items-center gap-2 rounded-md border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${connected ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-border bg-muted text-muted-foreground"}`}>
+            <span className={`h-2 w-2 rounded-full ${connected ? "bg-emerald-500" : "bg-muted-foreground/50"}`} />
+            {connected ? "Live" : "Snapshot"}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex flex-1 flex-col justify-center px-5 py-5">
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <p className="text-3xl font-semibold tracking-tight text-foreground">{formatUsd(price)}</p>
+            <p className={`mt-1 text-sm font-semibold ${tone}`}>{formatPercent(changePercent)}</p>
+          </div>
+          <a href="/bitcoin-market" className="rounded-md border border-border px-3 py-2 text-xs font-semibold text-foreground transition hover:bg-muted">
+            Open
+          </a>
+        </div>
+
+        <Sparkline points={points} className="mt-4 h-14 w-full" />
+      </div>
+
+      <div className="grid grid-cols-2 divide-x divide-border border-t border-border">
+        <div className="px-4 py-3 text-center">
+          <p className="text-base font-semibold tabular-nums text-foreground">{formatUsd(snapshot.highPrice, 0)}</p>
+          <p className="text-[11px] text-muted-foreground">24h high</p>
+        </div>
+        <div className="px-4 py-3 text-center">
+          <p className="text-base font-semibold tabular-nums text-foreground">{formatUsd(snapshot.lowPrice, 0)}</p>
+          <p className="text-[11px] text-muted-foreground">24h low</p>
+        </div>
+      </div>
+    </div>
+  );
+}

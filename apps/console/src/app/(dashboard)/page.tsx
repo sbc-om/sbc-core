@@ -8,10 +8,8 @@ import { getSessionUser } from "@/lib/session";
 import { getWidgetLayout } from "@/actions/widget-layout";
 import { getBuiltinWidgetConfig } from "@/actions/builtin-widget-settings";
 import { HiMiniPuzzlePiece } from "react-icons/hi2";
-import { BitcoinPriceWidget, getBitcoinMarketSnapshot } from "@/../external-modules/bitcoin_market/src";
 import { db, modules, auditLogs, users as usersTable, events } from "@sbc/database";
 import { SYSTEM_TENANT_ID } from "@/lib/bootstrap";
-import { CATALOG } from "./marketplace/_data/catalog";
 
 export default async function DashboardPage() {
   const now = new Date();
@@ -50,25 +48,10 @@ export default async function DashboardPage() {
   const activeUserCount = userCount[0]?.count    ?? 0;
   const auditCount      = auditToday[0]?.count   ?? 0;
   const eventCount      = pendingEvents[0]?.count ?? 0;
-  const hasBitcoinMarket = installedRows.some((row) => row.name === "bitcoin_market");
-  const bitcoinSnapshot = hasBitcoinMarket ? await getBitcoinMarketSnapshot() : null;
 
   // ── Module widgets ─────────────────────────────────────────────────────────
-  const catalogMap = new Map(CATALOG.map((c) => [c.name, c]));
-
-  type EnrichedModule = {
-    name:    string;
-    title:   string;
-    version: string | null;
-    catalog: (typeof CATALOG)[number];
-  };
-
-  const enriched = installedRows.flatMap((row): EnrichedModule[] => {
-    const catalog = catalogMap.get(row.name);
-    return catalog ? [{ ...row, catalog }] : [];
-  });
-
-  const appModules = enriched.filter((r) => r.catalog.category !== "system");
+  const SYSTEM_MODULE_NAMES = new Set(["base", "iam"]);
+  const appModules = installedRows.filter((row) => !SYSTEM_MODULE_NAMES.has(row.name));
 
   const widgetResults = await Promise.all(
     appModules
@@ -133,16 +116,6 @@ export default async function DashboardPage() {
           />
         </section>
       )}
-
-      {/* ── Module data widgets ──────────────────────────────────── */}
-      {hasBitcoinMarket ? (
-        <section className="space-y-4">
-          <SectionHeader label="Live Markets" />
-          <div className="grid gap-4 xl:grid-cols-2">
-            <BitcoinPriceWidget snapshot={bitcoinSnapshot!} />
-          </div>
-        </section>
-      ) : null}
 
       {moduleWidgets.length > 0 ? (
         <section className="space-y-4">

@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import {
   HiMiniArrowDownTray,
+  HiMiniArrowPath,
   HiMiniCheckCircle,
   HiMiniClock,
   HiMiniCpuChip,
@@ -18,9 +19,10 @@ interface Props {
   status:      CatalogStatus;
   pricing:     Pricing;
   installable: boolean;
+  hasUpgrade:  boolean;
 }
 
-export function ActionButton({ name, title, status, pricing, installable }: Props) {
+export function ActionButton({ name, title, status, pricing, installable, hasUpgrade }: Props) {
   const [pending, startTransition] = useTransition();
   const toast   = useToast();
   const confirm = useConfirm();
@@ -29,7 +31,8 @@ export function ActionButton({ name, title, status, pricing, installable }: Prop
     startTransition(async () => {
       const result = await installModuleAction(name);
       if (result.error) toast.error("Install failed", result.error);
-      else              toast.success(`${title} installed`, "The module is now active.");
+      else if (hasUpgrade) toast.success(`${title} updated`, "The newer module version is now active.");
+      else                 toast.success(`${title} installed`, "The module is now active.");
     });
   }
 
@@ -60,6 +63,20 @@ export function ActionButton({ name, title, status, pricing, installable }: Prop
   }
 
   if (status === "installed") {
+    if (hasUpgrade) {
+      return (
+        <button
+          type="button"
+          disabled={pending}
+          onClick={handleInstall}
+          className={`${base} border-foreground bg-foreground text-background shadow-sm hover:opacity-92`}
+        >
+          <HiMiniArrowPath className={`h-3.5 w-3.5 ${pending ? "animate-spin" : ""}`} />
+          {pending ? "Updating..." : "Update"}
+        </button>
+      );
+    }
+
     return (
       <button
         type="button"
