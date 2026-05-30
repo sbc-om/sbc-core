@@ -6,6 +6,7 @@ import { db } from "@sbc/database";
 import { modules } from "@sbc/database";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
+import { isVersionNewer } from "@/lib/module-version";
 
 // ── Manifest schema validation ────────────────────────────────────────────────
 const ManifestSchema = z.object({
@@ -71,7 +72,8 @@ export async function POST(req: NextRequest) {
 
     // Guard against path traversal
     const safeName = manifest.name.replace(/[^a-z0-9_]/g, "");
-    const moduleDir = path.join(EXTERNAL_MODULES_DIR, safeName);
+    const moduleRootDir = path.join(EXTERNAL_MODULES_DIR, safeName);
+    const moduleDir = path.join(moduleRootDir, manifest.version);
 
     // Extract to disk
     await fs.mkdir(moduleDir, { recursive: true });
@@ -89,10 +91,16 @@ export async function POST(req: NextRequest) {
         version: manifest.version,
         state:   "discovered",
       });
-    } else if (["uninstalled", "error", "discovered"].includes(existing.state)) {
+    } else if (isVersionNewer(manifest.version, existing.version) || existing.version === manifest.version || ["uninstalled", "error", "discovered"].includes(existing.state)) {
       await db
         .update(modules)
-        .set({ title: manifest.title, version: manifest.version, state: "discovered", error: null, updatedAt: new Date() })
+        .set({
+          title: manifest.title,
+          version: manifest.version,
+          state: existing.state === "installed" ? existing.state : "discovered",
+          error: null,
+          updatedAt: new Date(),
+        })
         .where(eq(modules.name, manifest.name));
     }
 

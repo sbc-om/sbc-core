@@ -5,36 +5,81 @@ import { db } from "@sbc/database";
 import { modules } from "@sbc/database";
 import { eq } from "drizzle-orm";
 import type { ModuleManifest } from "@sbc/sdk";
+import { compareModuleVersions } from "@/lib/module-version";
 
 export const EXTERNAL_MODULES_DIR = path.join(process.cwd(), "external-modules");
 const WORKSPACE_ROOT = path.resolve(process.cwd(), "..", "..");
 
 interface ModuleSource {
+  kind: "versioned-external" | "legacy-external" | "workspace";
   manifestPath: string;
   modulePath: string;
 }
 
-async function collectModuleSources(): Promise<ModuleSource[]> {
+interface ExternalModuleDescriptor {
+  manifest: ModuleManifest;
+  source: ModuleSource;
+}
+
+function isSemverDirectoryName(value: string): boolean {
+  return /^\d+\.\d+\.\d+$/.test(value);
+}
+
+async function readManifest(source: ModuleSource): Promise<ModuleManifest | null> {
+  try {
+    const raw = await fs.readFile(source.manifestPath, "utf-8");
+    return JSON.parse(raw) as ModuleManifest;
+  } catch {
+    return null;
+  }
+}
+
+async function collectVersionedExternalSources(): Promise<ModuleSource[]> {
   const sources: ModuleSource[] = [];
 
   try {
-    const entries = await fs.readdir(EXTERNAL_MODULES_DIR, { withFileTypes: true });
-    for (const entry of entries) {
-      if (!entry.isDirectory()) continue;
+    const moduleEntries = await fs.readdir(EXTERNAL_MODULES_DIR, { withFileTypes: true });
+
+    for (const moduleEntry of moduleEntries) {
+      if (!moduleEntry.isDirectory()) continue;
+
+      const moduleDir = path.join(EXTERNAL_MODULES_DIR, moduleEntry.name);
+      const nestedEntries = await fs.readdir(moduleDir, { withFileTypes: true }).catch(() => []);
+
+      const versionDirectories = nestedEntries.filter((entry) => entry.isDirectory() && isSemverDirectoryName(entry.name));
+      if (versionDirectories.length > 0) {
+        for (const versionDirectory of versionDirectories) {
+          sources.push({
+            kind: "versioned-external",
+            manifestPath: path.join(moduleDir, versionDirectory.name, "manifest.json"),
+            modulePath: path.join(moduleDir, versionDirectory.name),
+          });
+        }
+        continue;
+      }
+
       sources.push({
-        manifestPath: path.join(EXTERNAL_MODULES_DIR, entry.name, "manifest.json"),
-        modulePath: path.join(EXTERNAL_MODULES_DIR, entry.name),
+        kind: "legacy-external",
+        manifestPath: path.join(moduleDir, "manifest.json"),
+        modulePath: moduleDir,
       });
     }
   } catch {
     // ignore missing external-modules directory
   }
 
+  return sources;
+}
+
+async function collectModuleSources(): Promise<ModuleSource[]> {
+  const sources: ModuleSource[] = await collectVersionedExternalSources();
+
   try {
     const entries = await fs.readdir(WORKSPACE_ROOT, { withFileTypes: true });
     for (const entry of entries) {
       if (!entry.isDirectory() || !entry.name.endsWith("-module")) continue;
       sources.push({
+        kind: "workspace",
         manifestPath: path.join(WORKSPACE_ROOT, entry.name, "manifest.json"),
         modulePath: path.join(WORKSPACE_ROOT, entry.name),
       });
@@ -46,59 +91,58 @@ async function collectModuleSources(): Promise<ModuleSource[]> {
   return sources;
 }
 
+async function getLatestExternalModuleDescriptors(): Promise<ExternalModuleDescriptor[]> {
+  const sources = await collectModuleSources();
+  const descriptors = new Map<string, ExternalModuleDescriptor>();
+
+  for (const source of sources) {
+    const manifest = await readManifest(source);
+
+    if (!manifest?.name) {
+      console.warn(`[external-modules] Skipping ${source.modulePath}: manifest.name missing or invalid`);
+      continue;
+    }
+
+    const existing = descriptors.get(manifest.name);
+    if (!existing || compareModuleVersions(manifest.version, existing.manifest.version) > 0) {
+      descriptors.set(manifest.name, { manifest, source });
+    }
+  }
+
+  return [...descriptors.values()];
+}
+
+export async function getLatestExternalModuleManifest(name: string): Promise<ModuleManifest | null> {
+  const descriptors = await getLatestExternalModuleDescriptors();
+  const match = descriptors.find((descriptor) => descriptor.manifest.name === name);
+  return match?.manifest ?? null;
+}
+
 /**
  * Scans disk-backed external module sources and registers every discovered
  * module in the kernel registry. Called once during `bootstrapApp()`.
  */
 export async function loadExternalModules(): Promise<void> {
-  const sources = await collectModuleSources();
-  const seen = new Set<string>();
+  const descriptors = await getLatestExternalModuleDescriptors();
 
-  for (const source of sources) {
-    const manifestPath = source.manifestPath;
+  for (const { manifest, source } of descriptors) {
+    moduleRegistry.register(manifest, source.modulePath, "discovered");
 
-    try {
-      const raw  = await fs.readFile(manifestPath, "utf-8");
-      const manifest = JSON.parse(raw) as ModuleManifest;
+    const row = await db.query.modules
+      .findFirst({ where: eq(modules.name, manifest.name) })
+      .catch(() => null);
 
-      if (!manifest.name) {
-        console.warn(`[external-modules] Skipping ${source.modulePath}: manifest.name missing`);
-        continue;
+    if (row) {
+      moduleRegistry.setState(
+        manifest.name,
+        row.state as import("@sbc/database").ModuleState,
+      );
+      if (row.installedVersion) {
+        moduleRegistry.setInstalledVersion(manifest.name, row.installedVersion);
       }
-
-      if (seen.has(manifest.name)) {
-        continue;
-      }
-      seen.add(manifest.name);
-
-      // Register in the kernel registry (if not already present)
-      if (!moduleRegistry.has(manifest.name)) {
-        moduleRegistry.register(
-          manifest,
-          source.modulePath,
-          "discovered",
-        );
-      }
-
-      // Sync the DB state into the registry
-      const row = await db.query.modules
-        .findFirst({ where: eq(modules.name, manifest.name) })
-        .catch(() => null);
-
-      if (row) {
-        moduleRegistry.setState(
-          manifest.name,
-          row.state as import("@sbc/database").ModuleState,
-        );
-        if (row.installedVersion) {
-          moduleRegistry.setInstalledVersion(manifest.name, row.installedVersion);
-        }
-      }
-
-      console.log(`[external-modules] Loaded "${manifest.name}" v${manifest.version}`);
-    } catch (err) {
-      console.error(`[external-modules] Failed to load "${source.modulePath}":`, err);
     }
+
+    console.log(`[external-modules] Loaded "${manifest.name}" v${manifest.version}`);
   }
 }
 
@@ -107,20 +151,6 @@ export async function loadExternalModules(): Promise<void> {
  * Used by the marketplace page to display uploaded modules alongside the catalog.
  */
 export async function listExternalModuleManifests(): Promise<ModuleManifest[]> {
-  const manifests = new Map<string, ModuleManifest>();
-  const sources = await collectModuleSources();
-
-  for (const source of sources) {
-    try {
-      const raw = await fs.readFile(source.manifestPath, "utf-8");
-      const manifest = JSON.parse(raw) as ModuleManifest;
-      if (manifest.name && !manifests.has(manifest.name)) {
-        manifests.set(manifest.name, manifest);
-      }
-    } catch {
-      // skip corrupt entries silently
-    }
-  }
-
-  return [...manifests.values()];
+  const descriptors = await getLatestExternalModuleDescriptors();
+  return descriptors.map((descriptor) => descriptor.manifest);
 }

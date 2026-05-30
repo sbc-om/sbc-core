@@ -12,10 +12,12 @@ class ModuleRegistry {
   private readonly modules = new Map<string, ModuleRegistryEntry>();
 
   register(manifest: ModuleManifest, path: string, state: ModuleState = "discovered"): void {
+    const existing = this.modules.get(manifest.name);
+
     this.modules.set(manifest.name, {
       manifest,
-      state,
-      installedVersion: null,
+      state: existing?.state ?? state,
+      installedVersion: existing?.installedVersion ?? null,
       path,
     });
   }

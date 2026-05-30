@@ -1,0 +1,21 @@
+{
+  "name": "bitcoin-market-module",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Standalone Bitcoin market module for SBC Core with live Binance pricing and dashboard widget source",
+  "type": "module",
+  "scripts": {
+    "build:zip": "node scripts/build-zip.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.29",
+    "@types/adm-zip": "^0.5.8",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "adm-zip": "^0.5.17",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "typescript": "^5.8.3"
+  }
+}
