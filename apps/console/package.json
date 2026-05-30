@@ -28,7 +28,6 @@
     "class-variance-authority": "^0.7.1",
     "drizzle-orm": "^0.43.1",
     "next": "15.3.2",
-    "overlayscrollbars": "^2.16.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-icons": "^5.5.0",

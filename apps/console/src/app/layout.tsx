@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import "overlayscrollbars/overlayscrollbars.css";
-import { OverlayScrollbarsProvider } from "@/components/overlay-scrollbars-provider";
 import { SystemFeedbackProvider } from "@/components/system-feedback";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
@@ -27,7 +25,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <ThemeProvider>
-          <OverlayScrollbarsProvider />
           <SystemFeedbackProvider>{children}</SystemFeedbackProvider>
         </ThemeProvider>
       </body>
