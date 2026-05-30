@@ -95,6 +95,26 @@ export function FilePickerDialog({
 
   useEffect(() => {
     if (!open) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
     let cancelled = false;
     async function load() {
       setLoading(true);
@@ -301,27 +321,32 @@ export function FilePickerDialog({
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4">
+        <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto sm:items-center sm:p-4">
           <button
             type="button"
             onClick={() => setOpen(false)}
             className="absolute inset-0 bg-black/55 backdrop-blur-sm"
-            aria-label="Close"
+            aria-label="Close file picker dialog"
           />
 
-          <div className="relative z-10 flex w-full max-h-[92vh] flex-col overflow-hidden rounded-t-2xl border border-border/80 bg-background shadow-2xl sm:max-w-5xl sm:rounded-2xl">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="file-picker-title"
+            className="relative z-10 flex w-full max-h-[92vh] flex-col overflow-hidden rounded-t-2xl border border-border/80 bg-background shadow-2xl sm:max-w-5xl sm:rounded-2xl"
+          >
 
             {/* Header */}
             <div className="flex shrink-0 items-start justify-between gap-4 border-b border-border px-6 py-5">
               <div>
-                <h2 className="text-lg font-semibold tracking-tight text-foreground">{title}</h2>
+                <h2 id="file-picker-title" className="text-lg font-semibold tracking-tight text-foreground">{title}</h2>
                 {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
               </div>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
                 className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-foreground"
-                aria-label="Close"
+                aria-label="Close file picker dialog"
               >
                 <HiMiniXMark className="h-4 w-4" />
               </button>

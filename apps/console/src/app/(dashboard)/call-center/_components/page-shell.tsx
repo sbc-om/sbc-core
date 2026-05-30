@@ -17,20 +17,20 @@ export function CallCenterPageShell({
 }) {
   return (
     <div className="space-y-6">
-      <header className="rounded-3xl border border-border bg-background px-6 py-6 shadow-sm">
+      <header className="rounded-3xl border border-border bg-background px-5 py-5 shadow-sm sm:px-6 sm:py-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-sky-700">{eyebrow}</p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-foreground">{title}</h1>
+            <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">{title}</h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">{description}</p>
           </div>
-          {actions ? <div className="flex flex-wrap items-center gap-3">{actions}</div> : null}
+          {actions ? <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">{actions}</div> : null}
         </div>
       </header>
 
-      {metrics ? <section className="grid gap-4 lg:grid-cols-4">{metrics}</section> : null}
+      {metrics ? <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{metrics}</section> : null}
 
-      <section className="rounded-3xl border border-border bg-background p-6 shadow-sm">
+      <section className="rounded-3xl border border-border bg-background p-5 shadow-sm sm:p-6">
         {children}
       </section>
     </div>
@@ -41,7 +41,7 @@ export function CallCenterActionButton({ label }: { label: string }) {
   return (
     <button
       type="button"
-      className="inline-flex items-center rounded-xl bg-foreground px-4 py-2.5 text-sm font-semibold text-background transition hover:opacity-90"
+      className="inline-flex w-full items-center justify-center rounded-xl bg-foreground px-4 py-2.5 text-sm font-semibold text-background transition hover:opacity-90 sm:w-auto"
     >
       {label}
     </button>

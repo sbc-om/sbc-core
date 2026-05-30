@@ -1,6 +1,7 @@
 "use client";
 
-import { useTransition, useState } from "react";
+import { useEffect, useTransition, useState } from "react";
+import { usePathname } from "next/navigation";
 import { HiMiniChevronUpDown, HiBars3, HiArrowRightOnRectangle } from "react-icons/hi2";
 import { logoutAction } from "@/actions/auth";
 import { ThemeToggle } from "./theme-toggle";
@@ -13,6 +14,27 @@ interface Props {
 export function UserHeader({ user, onMenuToggle }: Props) {
   const [open, setOpen]            = useState(false);
   const [pending, startTransition] = useTransition();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (!open) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
 
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-background px-4">
@@ -31,6 +53,10 @@ export function UserHeader({ user, onMenuToggle }: Props) {
           <ThemeToggle compact />
           <button
             onClick={() => setOpen((p) => !p)}
+            type="button"
+            aria-haspopup="menu"
+            aria-expanded={open}
+            aria-label="Open user menu"
             className="flex h-10 items-center gap-2 rounded-md border border-border bg-background px-2.5 text-sm shadow-sm transition-colors hover:bg-muted"
           >
             <span className="app-avatar-chip h-7 w-7 rounded-md text-xs font-semibold text-foreground">
@@ -50,14 +76,16 @@ export function UserHeader({ user, onMenuToggle }: Props) {
 
         {open && (
           <>
-            <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-            <div className="absolute right-0 top-full z-20 mt-1.5 w-60 rounded-lg border border-border bg-background shadow-lg">
+            <button type="button" aria-label="Close user menu" className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+            <div role="menu" aria-label="User menu" className="absolute right-0 top-full z-20 mt-1.5 w-60 rounded-lg border border-border bg-background shadow-lg">
               <div className="border-b border-border px-4 py-3">
                 <p className="text-sm font-semibold text-foreground">{user.name}</p>
                 <p className="mt-0.5 truncate text-xs text-muted-foreground">{user.email}</p>
               </div>
               <div className="p-1.5">
                 <button
+                  type="button"
+                  role="menuitem"
                   disabled={pending}
                   onClick={() => startTransition(() => logoutAction())}
                   className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/5 disabled:opacity-50"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { HiMiniXMark } from "react-icons/hi2";
 import { createPipelineAction } from "@/actions/crm";
 import { useToast } from "@/components/system-feedback";
@@ -13,6 +13,30 @@ export function CreatePipelineDialog() {
   const formRef                    = useRef<HTMLFormElement>(null);
   const toast                      = useToast();
 
+  function handleClose() {
+    setOpen(false);
+  }
+
+  useEffect(() => {
+    if (!open) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        handleClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
+
   function handleSubmit(formData: FormData) {
     startTransition(async () => {
       const result = await createPipelineAction(formData);
@@ -20,7 +44,7 @@ export function CreatePipelineDialog() {
         toast.error("Failed to create pipeline", result.error);
       } else {
         formRef.current?.reset();
-        setOpen(false);
+        handleClose();
         toast.success("Pipeline created", "Your new pipeline is ready to use.");
       }
     });
@@ -40,16 +64,22 @@ export function CreatePipelineDialog() {
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setOpen(false)} />
-          <div className="relative z-10 flex w-full max-h-[92vh] flex-col rounded-t-lg border border-border bg-background shadow-xl sm:max-w-lg sm:rounded-lg">
+        <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto sm:items-center sm:p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={handleClose} />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="create-pipeline-title"
+            className="relative z-10 flex w-full max-h-[92vh] flex-col rounded-t-lg border border-border bg-background shadow-xl sm:max-w-lg sm:rounded-lg"
+          >
 
             <div className="flex shrink-0 items-center justify-between border-b border-border px-6 py-4">
               <div>
-                <h2 className="text-base font-semibold text-foreground">New Pipeline</h2>
+                <h2 id="create-pipeline-title" className="text-base font-semibold text-foreground">New Pipeline</h2>
                 <p className="mt-0.5 text-xs text-muted-foreground">Define a sales pipeline and its stages.</p>
               </div>
-              <button type="button" onClick={() => setOpen(false)}
+              <button type="button" onClick={handleClose}
+                aria-label="Close pipeline dialog"
                 className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground">
                 <HiMiniXMark className="h-4 w-4" />
               </button>
@@ -91,7 +121,7 @@ export function CreatePipelineDialog() {
             </div>
 
             <div className="flex shrink-0 items-center justify-end gap-2 border-t border-border px-6 py-4">
-              <button type="button" onClick={() => setOpen(false)}
+              <button type="button" onClick={handleClose}
                 className="rounded-md border border-border px-4 py-2 text-sm font-medium hover:bg-muted">
                 Cancel
               </button>

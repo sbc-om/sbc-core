@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { HiMiniCheck, HiMiniChevronDown, HiMiniMoon, HiMiniSun } from "react-icons/hi2";
 import { cn } from "@sbc/ui";
 import { useTheme } from "./theme-provider";
@@ -27,6 +27,22 @@ export function ThemeToggle({ compact = false }: Props) {
   const [open, setOpen] = useState(false);
   const activeOption = OPTIONS.find((option) => option.id === theme) ?? OPTIONS[0];
   const ActiveIcon = theme === "dark" ? HiMiniMoon : HiMiniSun;
+
+  useEffect(() => {
+    if (!open) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
 
   return (
     <div className="relative">
@@ -56,7 +72,7 @@ export function ThemeToggle({ compact = false }: Props) {
             className="fixed inset-0 z-30 cursor-default"
             onClick={() => setOpen(false)}
           />
-          <div className="absolute right-0 top-full z-40 mt-2 w-44 overflow-hidden rounded-lg border border-border bg-background p-1.5 shadow-lg">
+          <div role="menu" aria-label="Theme menu" className="absolute right-0 top-full z-40 mt-2 w-44 overflow-hidden rounded-lg border border-border bg-background p-1.5 shadow-lg">
             <div className="space-y-1">
               {OPTIONS.map((option) => {
                 const active = option.id === theme;
@@ -66,6 +82,8 @@ export function ThemeToggle({ compact = false }: Props) {
                   <button
                     key={option.id}
                     type="button"
+                    role="menuitemradio"
+                    aria-checked={active}
                     onClick={() => {
                       setTheme(option.id);
                       setOpen(false);

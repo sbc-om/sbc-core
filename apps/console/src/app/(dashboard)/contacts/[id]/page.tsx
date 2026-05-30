@@ -27,8 +27,8 @@ export default async function ContactDetailPage({ params }: Props) {
   return (
     <div className="space-y-6">
       {/* Breadcrumb */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-2">
           <Link
             href="/contacts"
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -39,7 +39,9 @@ export default async function ContactDetailPage({ params }: Props) {
           <span className="text-muted-foreground">/</span>
           <h1 className="text-sm font-semibold text-foreground">{fullName}</h1>
         </div>
-        <DeleteContactButton id={contact.id} name={fullName} />
+        <div className="w-full sm:w-auto">
+          <DeleteContactButton id={contact.id} name={fullName} />
+        </div>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -154,10 +156,10 @@ export default async function ContactDetailPage({ params }: Props) {
               <textarea name="notes" rows={4} defaultValue={contact.notes ?? ""} className={`${inputCls} resize-none`} />
             </div>
 
-            <div className="flex justify-end pt-2">
+            <div className="flex pt-2 sm:justify-end">
               <button
                 type="submit"
-                className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 sm:w-auto"
               >
                 Save Changes
               </button>

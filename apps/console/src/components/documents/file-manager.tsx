@@ -60,6 +60,26 @@ export function FileManager({ initialFiles, initialStats, canUpload, canDelete }
   const confirm = useConfirm();
   const toast   = useToast();
 
+  useEffect(() => {
+    if (!previewFile) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setPreviewFile(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [previewFile]);
+
   const folders = useMemo(() => {
     return ["all", ...Array.from(new Set(files.map((f) => f.folder))).sort()];
   }, [files]);
@@ -364,7 +384,7 @@ export function FileManager({ initialFiles, initialStats, canUpload, canDelete }
 
       {/* Preview modal */}
       {previewFile && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4">
+        <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto sm:items-center sm:p-4">
           <button
             type="button"
             onClick={() => setPreviewFile(null)}
@@ -372,11 +392,16 @@ export function FileManager({ initialFiles, initialStats, canUpload, canDelete }
             aria-label="Close preview"
           />
 
-          <div className="relative z-10 flex w-full max-h-[92vh] flex-col overflow-hidden rounded-t-lg border border-white/10 bg-slate-950 text-white shadow-2xl sm:max-w-5xl sm:rounded-lg">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="file-preview-title"
+            className="relative z-10 flex w-full max-h-[92vh] flex-col overflow-hidden rounded-t-lg border border-white/10 bg-slate-950 text-white shadow-2xl sm:max-w-5xl sm:rounded-lg"
+          >
             {/* Header */}
             <div className="flex shrink-0 items-center justify-between gap-4 border-b border-white/10 px-5 py-4">
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-white">{previewFile.title}</p>
+                <p id="file-preview-title" className="truncate text-sm font-semibold text-white">{previewFile.title}</p>
                 <p className="truncate text-xs text-slate-400">{previewFile.originalName} · {formatFileSize(previewFile.sizeBytes)}</p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
@@ -391,7 +416,7 @@ export function FileManager({ initialFiles, initialStats, canUpload, canDelete }
                   type="button"
                   onClick={() => setPreviewFile(null)}
                   className="flex h-8 w-8 items-center justify-center rounded-md border border-white/10 bg-white/5 text-white transition hover:bg-white/10"
-                  aria-label="Close"
+                  aria-label="Close file preview dialog"
                 >
                   <HiMiniXMark className="h-4 w-4" />
                 </button>

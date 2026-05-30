@@ -28,8 +28,8 @@ export default function CallCenterOverviewPage() {
             <h2 className="text-lg font-semibold text-foreground">Queue Snapshot</h2>
             <p className="mt-1 text-sm text-muted-foreground">Live pressure, staffing, and SLA profile by queue.</p>
           </div>
-          <div className="mt-4 overflow-hidden rounded-2xl border border-border">
-            <table className="w-full text-left text-sm">
+          <div className="mt-4 overflow-x-auto rounded-2xl border border-border">
+            <table className="w-full min-w-[40rem] text-left text-sm">
               <thead className="bg-muted/30 text-muted-foreground">
                 <tr>
                   <th className="px-4 py-3 font-medium">Queue</th>

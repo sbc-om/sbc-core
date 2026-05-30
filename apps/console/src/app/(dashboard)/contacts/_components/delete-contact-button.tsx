@@ -29,10 +29,12 @@ export function DeleteContactButton({ id, name }: { id: string; name: string }) 
     <button
       disabled={pending}
       onClick={() => void handle()}
-      className="flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-50"
+      className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md border border-border px-3 text-sm font-medium text-muted-foreground transition-colors hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 disabled:opacity-50 sm:h-8 sm:w-8 sm:px-0"
       title="Delete contact"
+      aria-label="Delete contact"
     >
       <HiMiniTrash className="h-3.5 w-3.5" />
+      <span className="sm:hidden">Delete Contact</span>
     </button>
   );
 }

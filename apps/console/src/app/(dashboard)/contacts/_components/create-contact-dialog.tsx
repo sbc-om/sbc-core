@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { HiMiniXMark } from "react-icons/hi2";
 import { createContactAction } from "@sbc/module-contacts/actions";
 import { useToast } from "@/components/system-feedback";
@@ -12,6 +12,26 @@ export function CreateContactDialog() {
   const toast   = useToast();
 
   function handleClose() { setOpen(false); }
+
+  useEffect(() => {
+    if (!open) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        handleClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open]);
 
   function handleSubmit(formData: FormData) {
     startTransition(async () => {
@@ -39,21 +59,26 @@ export function CreateContactDialog() {
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center sm:p-4">
+        <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto sm:items-center sm:p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleClose} />
 
-          <div className="relative z-10 flex w-full max-h-[92vh] flex-col rounded-t-lg border border-border bg-background shadow-xl sm:max-w-lg sm:rounded-lg">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="create-contact-title"
+            className="relative z-10 flex w-full max-h-[92vh] flex-col rounded-t-lg border border-border bg-background shadow-xl sm:max-w-lg sm:rounded-lg"
+          >
             {/* Header */}
             <div className="flex shrink-0 items-center justify-between border-b border-border px-6 py-4">
               <div>
-                <h2 className="text-base font-semibold text-foreground">New Contact</h2>
+                <h2 id="create-contact-title" className="text-base font-semibold text-foreground">New Contact</h2>
                 <p className="mt-0.5 text-xs text-muted-foreground">Add a person or organization to your contacts.</p>
               </div>
               <button
                 type="button"
                 onClick={handleClose}
                 className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                aria-label="Close"
+                aria-label="Close contact dialog"
               >
                 <HiMiniXMark className="h-4 w-4" />
               </button>

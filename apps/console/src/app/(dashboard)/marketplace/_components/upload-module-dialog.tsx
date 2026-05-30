@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   HiMiniArrowUpTray,
@@ -115,16 +115,41 @@ export function UploadModuleDialog({ open, onClose }: Props) {
     handleFiles(e.dataTransfer.files);
   }, [handleFiles]);
 
+  useEffect(() => {
+    if (!open) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        handleClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open, handleClose]);
+
   if (!open) return null;
 
   return (
     // Backdrop
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-black/40 p-4 backdrop-blur-sm sm:items-center"
       onClick={(e) => { if (e.target === e.currentTarget) handleClose(); }}
     >
       {/* Dialog */}
-      <div className="app-surface w-full max-w-md overflow-hidden shadow-xl">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="upload-module-title"
+        className="app-surface w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto shadow-xl"
+      >
 
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
@@ -133,7 +158,7 @@ export function UploadModuleDialog({ open, onClose }: Props) {
               <HiMiniDocumentArrowUp className="h-4 w-4 text-muted-foreground" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-foreground">Upload Module</h2>
+              <h2 id="upload-module-title" className="text-sm font-semibold text-foreground">Upload Module</h2>
               <p className="text-xs text-muted-foreground">Install a module from a .zip package</p>
             </div>
           </div>
@@ -141,6 +166,7 @@ export function UploadModuleDialog({ open, onClose }: Props) {
             type="button"
             onClick={handleClose}
             disabled={state.kind === "uploading"}
+            aria-label="Close upload dialog"
             className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-40"
           >
             <HiMiniXMark className="h-4 w-4" />
